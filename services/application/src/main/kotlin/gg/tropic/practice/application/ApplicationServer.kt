@@ -125,11 +125,40 @@ class ApplicationServerArgs(parser: ArgParser)
 }
 
 /**
+ * Optional env-var overrides. When set, these win over the CLI args
+ * (which themselves win over the hard-coded defaults). Lets k8s
+ * deployments configure connection details via Secret/ConfigMap
+ * envFrom without having to wire CLI args through the container
+ * entrypoint. Set narrowly: existing prod CLI-arg invocations are
+ * unaffected when these env vars are unset.
+ */
+private fun applyEnvOverrides(args: Array<String>): Array<String>
+{
+    val overrides = mutableListOf<String>()
+    fun add(envKey: String, cliFlag: String) {
+        System.getenv(envKey)?.takeIf { it.isNotEmpty() }?.let {
+            // CLI arg only takes effect if not already present
+            if (args.none { a -> a == cliFlag || a.startsWith("$cliFlag=") }) {
+                overrides += cliFlag
+                overrides += it
+            }
+        }
+    }
+    add("REDIS_HOST", "--redishost")
+    add("REDIS_PORT", "--redisport")
+    add("REDIS_PASSWORD", "--redispass")
+    add("MONGODB_URI", "--mongouri")
+    add("MONGODB_DATABASE", "--mongodatabase")
+    add("SENTRY_DSN", "--dsn")
+    return args + overrides.toTypedArray()
+}
+
+/**
  * @author GrowlyX
  * @since 9/23/2023
  */
 fun main(args: Array<String>) = mainBody {
-    val parsedArgs = ArgParser(args)
+    val parsedArgs = ArgParser(applyEnvOverrides(args))
         .parseInto {
             ApplicationServerArgs(it)
         }
