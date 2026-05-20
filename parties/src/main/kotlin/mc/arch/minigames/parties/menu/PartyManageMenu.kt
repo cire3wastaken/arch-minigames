@@ -147,12 +147,6 @@ class PartyManageMenu(
                     "${CC.YELLOW}Left-Click to increase the limit by 1",
                 )
                 .toButton { _, type ->
-                    if (!player.hasPermission("party.update.limit"))
-                    {
-                        player.sendMessage("${CC.RED}You do not have permission to update your party's player limit.")
-                        return@toButton
-                    }
-
                     when (type) {
                         ClickType.RIGHT ->
                         {
