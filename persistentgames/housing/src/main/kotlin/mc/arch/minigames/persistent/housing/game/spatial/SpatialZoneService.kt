@@ -3,7 +3,9 @@ package mc.arch.minigames.persistent.housing.game.spatial
 import gg.scala.commons.playerstatus.isVirtuallyInvisibleToSomeExtent
 import gg.scala.commons.spatial.toLocation
 import gg.tropic.practice.map.metadata.impl.MapZoneMetadata
+import gg.tropic.practice.ugc.HostedWorldInstanceService
 import mc.arch.minigames.persistent.housing.api.model.PlayerHouse
+import mc.arch.minigames.persistent.housing.game.instance.HousingHostedWorldInstance
 import mc.arch.minigames.persistent.housing.game.resources.getPlayerHouseFromInstance
 import me.lucko.helper.Events
 import net.evilblock.cubed.util.bukkit.Tasks
@@ -11,8 +13,10 @@ import net.evilblock.cubed.util.bukkit.cuboid.Cuboid
 import org.bukkit.Location
 import org.bukkit.Material
 import org.bukkit.World
+import org.bukkit.entity.EntityType
 import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.block.BlockPlaceEvent
+import org.bukkit.event.entity.EntityExplodeEvent
 
 object SpatialZoneService
 {
@@ -88,6 +92,14 @@ object SpatialZoneService
                         event.isCancelled = true
                     }
                 }
+            }
+
+        Events.subscribe(EntityExplodeEvent::class.java)
+            .handler { event ->
+                if (event.entityType != EntityType.PRIMED_TNT) return@handler
+                if (HostedWorldInstanceService.ofWorld(event.entity.world) !is HousingHostedWorldInstance) return@handler
+
+                event.isCancelled = true
             }
     }
 
