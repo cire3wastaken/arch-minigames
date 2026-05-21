@@ -35,7 +35,7 @@ object HousingItemService
     fun configure()
     {
         Events.subscribe(InventoryDragEvent::class.java)
-            .filter { it.cursor.isSimilar(realmItem) }
+            .filter { it.cursor?.isSimilar(realmItem) == true }
             .handler { event ->
                 event.isCancelled = true
             }
