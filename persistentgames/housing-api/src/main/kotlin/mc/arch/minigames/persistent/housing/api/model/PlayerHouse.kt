@@ -8,6 +8,7 @@ import mc.arch.minigames.persistent.housing.api.action.HousingActionService
 import mc.arch.minigames.persistent.housing.api.categorization.model.CategorizationResult
 import mc.arch.minigames.persistent.housing.api.action.player.ActionEvent
 import mc.arch.minigames.persistent.housing.api.action.tasks.Task
+import mc.arch.minigames.persistent.housing.api.content.HousingBiome
 import mc.arch.minigames.persistent.housing.api.content.HousingGameMode
 import mc.arch.minigames.persistent.housing.api.content.HousingItemStack
 import mc.arch.minigames.persistent.housing.api.content.HousingTime
@@ -53,6 +54,7 @@ data class PlayerHouse(
     var allowsMutatingOutsideRegion: Boolean? = false,
     var housingTime: HousingTime? = null,
     var housingWeather: HousingWeather? = null,
+    var housingBiome: HousingBiome? = null,
     var region: Cuboid? = null,
     val houseNPCMap: MutableMap<String, HousingNPC> = mutableMapOf(),
     val houseHologramMap: MutableMap<String, HousingHologram> = mutableMapOf(),

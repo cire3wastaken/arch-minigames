@@ -7,6 +7,7 @@ import mc.arch.minigames.persistent.housing.api.content.HousingTime
 import mc.arch.minigames.persistent.housing.api.content.HousingWeather
 import mc.arch.minigames.persistent.housing.api.model.PlayerHouse
 import mc.arch.minigames.persistent.housing.api.service.PlayerHousingService
+import mc.arch.minigames.persistent.housing.game.menu.house.biome.HouseBiomeSelectionMenu
 import mc.arch.minigames.persistent.housing.game.menu.house.events.EventActionSelectionMenu
 import mc.arch.minigames.persistent.housing.game.menu.house.hologram.HologramEditorMenu
 import mc.arch.minigames.persistent.housing.game.menu.house.npc.NPCEditorMenu
@@ -129,6 +130,21 @@ class MainHouseMenu(val house: PlayerHouse, val adminMenu: Boolean) : Menu("View
 
                 }
 
+            buttons[15] = ItemBuilder.of(XMaterial.GRASS_BLOCK)
+                .name("${CC.GREEN}Biome")
+                .addToLore(
+                    "${CC.GRAY}Change the biome of",
+                    "${CC.GRAY}your realm. Affects grass,",
+                    "${CC.GRAY}water, and foliage tint.",
+                    "",
+                    "${CC.WHITE}Currently ${house.housingBiome?.displayName ?: "${CC.GRAY}Default"}",
+                    "",
+                    "${CC.YELLOW}Click to choose a biome!"
+                ).toButton { _, _ ->
+                    Button.playNeutral(player)
+                    HouseBiomeSelectionMenu(house).openMenu(player)
+                }
+
             buttons[11] = ItemBuilder.of(XMaterial.DEAD_BUSH)
                 .name("${CC.GREEN}Weather")
                 .addToLore(
@@ -198,7 +214,7 @@ class MainHouseMenu(val house: PlayerHouse, val adminMenu: Boolean) : Menu("View
                     else -> XMaterial.GRASS_BLOCK
                 }
 
-                buttons[15] = ItemBuilder.of(gamemodeIcon)
+                buttons[20] = ItemBuilder.of(gamemodeIcon)
                     .name("${CC.GREEN}Personal Gamemode")
                     .addToLore(
                         "${CC.GRAY}Update your personal gamemode",

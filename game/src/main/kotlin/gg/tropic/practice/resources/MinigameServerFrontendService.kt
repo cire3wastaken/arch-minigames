@@ -20,6 +20,7 @@ import gg.tropic.practice.games.event.PlayerJoinGameEvent
 import gg.tropic.practice.minigame.AbstractMiniGameGameImpl
 import gg.tropic.practice.minigame.event.PlayerMiniGameQuitWhileStartingEvent
 import gg.tropic.practice.services.NetworkFluidityService
+import gg.tropic.practice.ugc.WorldInstanceProviderType
 import gg.tropic.practice.ugc.toHostedWorld
 import gg.tropic.practice.extensions.PlayerMatchUtilities
 import me.lucko.helper.Events
@@ -72,7 +73,8 @@ object MinigameServerFrontendService
             .compose()
 
         gameSpecificChannel.override(100) {
-            if (it.toHostedWorld() != null)
+            val hostedWorld = it.toHostedWorld()
+            if (hostedWorld != null && hostedWorld.providerType != WorldInstanceProviderType.REALM)
             {
                 return@override true
             }

@@ -14,6 +14,7 @@ import gg.tropic.practice.minigame.*
 import gg.tropic.practice.settings.ChatVisibility
 import gg.tropic.practice.settings.DuelsSettingCategory
 import gg.tropic.practice.schematics.manipulation.BlockChanger
+import gg.tropic.practice.ugc.WorldInstanceProviderType
 import gg.tropic.practice.ugc.toHostedWorld
 import org.bukkit.Bukkit
 
@@ -80,16 +81,18 @@ class PracticeGame : ExtendedScalaPlugin()
                 val bukkitPlayer = Bukkit.getPlayer(player)
                 val game = GameService.byPlayerOrSpectator(viewer.uniqueId)
                 val viewerHostedWorld = viewer.toHostedWorld()
-                if (viewerHostedWorld != null)
+                if (viewerHostedWorld != null && viewerHostedWorld.providerType != WorldInstanceProviderType.REALM)
                 {
                     val senderHostedWorld = bukkitPlayer?.toHostedWorld()
                     return@displayToPlayer senderHostedWorld != null &&
                         senderHostedWorld.globalId == viewerHostedWorld.globalId
                 }
 
+                val senderHostedWorld = bukkitPlayer?.toHostedWorld()
                 if (
                     bukkitPlayer != null &&
-                    bukkitPlayer.toHostedWorld() != null ||
+                    senderHostedWorld != null &&
+                    senderHostedWorld.providerType != WorldInstanceProviderType.REALM ||
                     game is AbstractMiniGameGameImpl<*>
                 )
                 {

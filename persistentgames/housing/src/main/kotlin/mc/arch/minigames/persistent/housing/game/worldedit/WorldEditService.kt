@@ -11,7 +11,9 @@ import net.evilblock.cubed.util.bukkit.ItemBuilder
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.block.Action
+import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.player.PlayerInteractEvent
+import org.bukkit.event.player.PlayerQuitEvent
 import org.bukkit.inventory.ItemStack
 import java.util.UUID
 
@@ -52,12 +54,17 @@ object WorldEditService
         return false
     }
 
+    private fun isWand(item: ItemStack?): Boolean
+    {
+        if (item == null || item.type != Material.WOOD_AXE) return false
+        return item.isSimilar(wandItem)
+    }
+
     @Configure
     fun configure()
     {
         Events.subscribe(PlayerInteractEvent::class.java)
-            .filter { it.item != null && it.item.type == Material.WOOD_AXE }
-            .filter { it.item.isSimilar(wandItem) }
+            .filter { isWand(it.item) }
             .handler { event ->
                 val player = event.player
                 val house = player.getPlayerHouseFromInstance() ?: return@handler
@@ -92,5 +99,15 @@ object WorldEditService
                     else -> {}
                 }
             }
+
+        // Cancelling PlayerInteractEvent on LEFT_CLICK_BLOCK is unreliable in
+        // creative mode — the block can still break before our handler runs.
+        // Belt-and-braces: also veto BlockBreakEvent when the wand is held.
+        Events.subscribe(BlockBreakEvent::class.java)
+            .filter { isWand(it.player.itemInHand) }
+            .handler { it.isCancelled = true }
+
+        Events.subscribe(PlayerQuitEvent::class.java)
+            .handler { clear(it.player.uniqueId) }
     }
 }

@@ -23,6 +23,7 @@ import mc.arch.minigames.persistent.housing.game.settings.type.MusicSetting
 import mc.arch.minigames.persistent.housing.game.spatial.SpatialZoneService
 import mc.arch.minigames.persistent.housing.game.spatial.toLocation
 import mc.arch.minigames.persistent.housing.game.spatial.toWorldPosition
+import mc.arch.minigames.persistent.housing.game.world.HousingBiomeService
 import mc.arch.minigames.persistent.housing.game.translateCC
 import mc.arch.minigames.versioned.generics.worlds.LoadedSlimeWorld
 import me.lucko.helper.Schedulers
@@ -111,6 +112,7 @@ class HousingHostedWorldInstance(
         if (playerHouseReference != null)
         {
             SpatialZoneService.configure(playerHouseReference!!, playerHouseReference?.plotSizeBlocks ?: 200, region, bukkitWorld)
+            HousingBiomeService.applyConfiguredBiome(playerHouseReference!!, bukkitWorld)
         }
 
         reconfigureWorld(firstSetup = true).join()

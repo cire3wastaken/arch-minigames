@@ -125,6 +125,12 @@ object WorldEditOperations
         }
         val world = player.server.getWorld(session.worldName!!)
             ?: return WorldEditResult.Failure("Selection world is no longer loaded.")
+        if (world.name != player.world.name)
+        {
+            return WorldEditResult.Failure(
+                "Your selection is in a different realm — reset pos1/pos2 here."
+            )
+        }
         val region = cuboidOf(world, session.pos1!!, session.pos2!!)
 
         validateRegion(player, house, region)?.let { return WorldEditResult.Failure(it) }
@@ -167,6 +173,12 @@ object WorldEditOperations
         }
         val world = player.server.getWorld(session.worldName!!)
             ?: return WorldEditResult.Failure("Selection world is no longer loaded.")
+        if (world.name != player.world.name)
+        {
+            return WorldEditResult.Failure(
+                "Your selection is in a different realm — reset pos1/pos2 here."
+            )
+        }
         val region = cuboidOf(world, session.pos1!!, session.pos2!!)
 
         validateRegion(player, house, region)?.let { return WorldEditResult.Failure(it) }
