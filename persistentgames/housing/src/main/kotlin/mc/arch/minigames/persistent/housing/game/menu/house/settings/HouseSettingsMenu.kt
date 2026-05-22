@@ -72,10 +72,10 @@ class HouseSettingsMenu(val house: PlayerHouse): Menu("House Settings")
                 "${CC.GRAY}from your realm.",
                 "",
                 "${CC.YELLOW}Distance Caps:",
-                "${CC.GRAY}Default: ${CC.WHITE}300x300",
-                "${CC.PINK}Mythic${CC.GRAY}: ${CC.WHITE}500x500",
-                "${CC.AQUA}Majestic${CC.GRAY}: ${CC.WHITE}750x750",
-                "${CC.D_AQUA}Champion${CC.GRAY}: ${CC.WHITE}1000x1000",
+                "${CC.GRAY}Default: ${CC.WHITE}400x400",
+                "${CC.PINK}Mythic${CC.GRAY}: ${CC.WHITE}600x600",
+                "${CC.AQUA}Majestic${CC.GRAY}: ${CC.WHITE}850x850",
+                "${CC.D_AQUA}Champion${CC.GRAY}: ${CC.WHITE}1200x1200",
                 "",
                 "${CC.GREEN}Left-Click to cycle forward +10",
                 "${CC.RED}Right-Click to cycle backward +10"
@@ -84,24 +84,24 @@ class HouseSettingsMenu(val house: PlayerHouse): Menu("House Settings")
                 {
                     house.plotSizeBlocks += 10
 
-                    if (house.plotSizeBlocks >= 300 && !player.hasPermission("housing.plot.500"))
+                    if (house.plotSizeBlocks >= 400 && !player.hasPermission("housing.plot.500"))
                     {
-                        house.plotSizeBlocks = 300
+                        house.plotSizeBlocks = 400
                     }
 
-                    if (house.plotSizeBlocks >= 500 && !player.hasPermission("housing.plot.750"))
+                    if (house.plotSizeBlocks >= 600 && !player.hasPermission("housing.plot.750"))
                     {
-                        house.plotSizeBlocks = 500
+                        house.plotSizeBlocks = 600
                     }
 
-                    if (house.plotSizeBlocks >= 750 && !player.hasPermission("housing.plot.1000"))
+                    if (house.plotSizeBlocks >= 850 && !player.hasPermission("housing.plot.1000"))
                     {
-                        house.plotSizeBlocks = 750
+                        house.plotSizeBlocks = 850
                     }
 
-                    if (house.plotSizeBlocks >= 1000)
+                    if (house.plotSizeBlocks >= 1200)
                     {
-                        house.plotSizeBlocks = 1000
+                        house.plotSizeBlocks = 1200
                     }
                 } else
                 {
