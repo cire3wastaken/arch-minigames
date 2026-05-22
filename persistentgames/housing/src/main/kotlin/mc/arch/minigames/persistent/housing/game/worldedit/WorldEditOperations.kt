@@ -128,7 +128,7 @@ object WorldEditOperations
         if (world.name != player.world.name)
         {
             return WorldEditResult.Failure(
-                "Your selection is in a different realm — reset pos1/pos2 here."
+                "Your selection is in a different realm - reset pos1/pos2 here."
             )
         }
         val region = cuboidOf(world, session.pos1!!, session.pos2!!)
@@ -176,7 +176,7 @@ object WorldEditOperations
         if (world.name != player.world.name)
         {
             return WorldEditResult.Failure(
-                "Your selection is in a different realm — reset pos1/pos2 here."
+                "Your selection is in a different realm - reset pos1/pos2 here."
             )
         }
         val region = cuboidOf(world, session.pos1!!, session.pos2!!)

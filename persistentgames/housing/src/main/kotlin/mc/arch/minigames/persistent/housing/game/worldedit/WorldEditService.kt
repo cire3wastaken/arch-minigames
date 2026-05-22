@@ -101,7 +101,7 @@ object WorldEditService
             }
 
         // Cancelling PlayerInteractEvent on LEFT_CLICK_BLOCK is unreliable in
-        // creative mode — the block can still break before our handler runs.
+        // creative mode - the block can still break before our handler runs.
         // Belt-and-braces: also veto BlockBreakEvent when the wand is held.
         Events.subscribe(BlockBreakEvent::class.java)
             .filter { isWand(it.player.itemInHand) }

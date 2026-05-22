@@ -1,7 +1,7 @@
 package mc.arch.minigames.persistent.housing.api.categorization.model
 
 /**
- * Atomic statement extracted from a house's textual fields — the "insight" stage
+ * Atomic statement extracted from a house's textual fields - the "insight" stage
  * of the multi-stage pipeline. Each insight covers a single observable aspect of
  * the house and carries a normalized sentiment / salience label.
  *

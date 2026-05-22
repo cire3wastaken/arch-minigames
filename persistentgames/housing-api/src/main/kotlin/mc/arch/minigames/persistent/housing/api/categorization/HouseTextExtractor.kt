@@ -7,7 +7,7 @@ import java.security.MessageDigest
 /**
  * Pulls every textual field off a [PlayerHouse] into a pipeline input.
  *
- * Strictly textual — no block composition, no schematic stats — because the
+ * Strictly textual - no block composition, no schematic stats - because the
  * classifier is trained on natural language. The content hash is what the
  * cache keys off, so adding a new surface here invalidates stale categories
  * automatically on the next run.

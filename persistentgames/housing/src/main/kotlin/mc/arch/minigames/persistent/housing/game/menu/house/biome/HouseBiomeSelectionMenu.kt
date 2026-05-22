@@ -54,7 +54,7 @@ class HouseBiomeSelectionMenu(val house: PlayerHouse) : Menu("Realm Biome")
                     if (columns == null)
                     {
                         player.sendMessage(
-                            "${CC.RED}Your realm hasn't been fully bootstrapped yet — try again in a moment."
+                            "${CC.RED}Your realm hasn't been fully bootstrapped yet - try again in a moment."
                         )
                         Button.playFail(player)
                         return@toButton

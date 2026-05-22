@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit
 /**
  * Publishes requests onto a Redis stream (`housing:categorize:stage1`) and
  * polls a keyspace entry for the pipeline's final output. This is the
- * production transport — it matches the App Store pipeline design where each
+ * production transport - it matches the App Store pipeline design where each
  * stage is a separately-scaled worker and the transport between stages is a
  * durable, replayable log.
  *

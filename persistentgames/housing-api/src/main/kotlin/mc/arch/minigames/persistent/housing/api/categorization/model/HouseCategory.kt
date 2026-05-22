@@ -1,7 +1,7 @@
 package mc.arch.minigames.persistent.housing.api.categorization.model
 
 /**
- * Final derived category for a house — stage 3 output. Categories are
+ * Final derived category for a house - stage 3 output. Categories are
  * dynamically derived, not drawn from a fixed enum, so emergent themes can
  * surface without a code change.
  *

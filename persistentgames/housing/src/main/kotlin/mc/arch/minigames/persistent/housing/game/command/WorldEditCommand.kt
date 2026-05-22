@@ -17,7 +17,7 @@ import org.bukkit.entity.Player
 /**
  * In-house WorldEdit commands. Each //xx alias is implemented as its own
  * object so the ACF Bukkit registration treats them as independent
- * commands — matches WorldEdit's UX (`//set`, `//cut`, etc.) without
+ * commands - matches WorldEdit's UX (`//set`, `//cut`, etc.) without
  * forcing a parent command.
  */
 object WorldEditCommand
