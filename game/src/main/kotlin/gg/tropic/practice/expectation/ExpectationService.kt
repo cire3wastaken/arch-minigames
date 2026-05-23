@@ -345,21 +345,27 @@ object ExpectationService
 
                 val spawnLocation = if (it.player.uniqueId !in game.expectedSpectators)
                 {
-                    runCatching {
-                        game.map
-                            .findSpawnLocationMatchingTeam(
-                                game.getTeamOf(it.player).teamIdentifier
-                            )!!
-                            .toLocation(game.arenaWorld)
-                    }.onFailure { throwable ->
-                        plugin.logger.log(
-                            Level.WARNING,
-                            "Game ${game.expectation} on ${game.map.name} has no spawn location for player ${it.player.name} (team=${
-                                game.getNullableTeam(it.player)?.teamIdentifier
-                            })",
-                            throwable
+                    val team = game.getNullableTeam(it.player)
+                    if (team == null)
+                    {
+                        plugin.logger.warning(
+                            "Game ${game.expectation} on ${game.map.name} has no team for player ${it.player.name} (likely timed-out pending login)"
                         )
-                    }.getOrNull()
+                        null
+                    } else
+                    {
+                        runCatching {
+                            game.map
+                                .findSpawnLocationMatchingTeam(team.teamIdentifier)!!
+                                .toLocation(game.arenaWorld)
+                        }.onFailure { throwable ->
+                            plugin.logger.log(
+                                Level.WARNING,
+                                "Game ${game.expectation} on ${game.map.name} has no spawn location for player ${it.player.name} (team=${team.teamIdentifier})",
+                                throwable
+                            )
+                        }.getOrNull()
+                    }
                 } else
                 {
                     game.arenaWorld.players
