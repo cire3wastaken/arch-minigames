@@ -23,7 +23,10 @@ data class AkersProfileDocument(
     var banned: Boolean = false,
     var banReason: String? = null,
     var bannedBy: String? = null, // UUID as string
-    var bannedAt: String? = null
+    var bannedAt: String? = null,
+    var currentAdNonceHash: String? = null,
+    var lastAdConfirmAt: String? = null,
+    var adWatchCount: Int = 0
 )
 {
     companion object

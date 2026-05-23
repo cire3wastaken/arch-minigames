@@ -19,7 +19,10 @@ data class AkersProfile(
     var banned: Boolean = false,
     var banReason: String? = null,
     var bannedBy: UUID? = null,
-    var bannedAt: Long? = null
+    var bannedAt: Long? = null,
+    var currentAdNonceHash: String? = null,
+    var lastAdConfirmAt: Long? = null,
+    var adWatchCount: Int = 0
 )
 {
     companion object
