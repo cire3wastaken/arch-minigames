@@ -11,6 +11,7 @@ import mc.arch.pubapi.pigdi.dto.AdConfirmResponse
 import mc.arch.pubapi.pigdi.dto.AdConfirmTooEarlyResponse
 import mc.arch.pubapi.pigdi.dto.ErrorResponse
 import mc.arch.pubapi.pigdi.dto.GenerateAdLinkResponse
+import mc.arch.pubapi.pigdi.service.ConfirmOutcome
 import mc.arch.pubapi.pigdi.service.IncentivesService
 import org.springframework.http.HttpHeaders
 import org.springframework.http.ResponseEntity
@@ -54,24 +55,10 @@ class IncentivesController(
     )
     fun generateAdLink(
         @Parameter(description = "Minecraft UUID of the player who will watch the ad")
-        @PathVariable uuid: String
+        @PathVariable uuid: UUID
     ): ResponseEntity<Any>
     {
-        val parsed = try
-        {
-            UUID.fromString(uuid)
-        }
-        catch (e: IllegalArgumentException)
-        {
-            return ResponseEntity.badRequest().body(
-                ErrorResponse(
-                    error = "INVALID_UUID",
-                    message = "Invalid UUID format: '$uuid'"
-                )
-            )
-        }
-
-        val result = incentivesService.generateAdLink(parsed)
+        val result = incentivesService.generateAdLink(uuid)
         return ResponseEntity.ok(
             GenerateAdLinkResponse(url = result.url, payload = result.payload)
         )
@@ -136,7 +123,7 @@ class IncentivesController(
 
         return when (val outcome = incentivesService.confirmAdWatch(payload))
         {
-            is IncentivesService.ConfirmOutcome.Success -> ResponseEntity.ok(
+            is ConfirmOutcome.Success -> ResponseEntity.ok(
                 AdConfirmResponse(
                     success = true,
                     uuid = outcome.uuid,
@@ -147,28 +134,28 @@ class IncentivesController(
                 )
             )
 
-            IncentivesService.ConfirmOutcome.InvalidPayload -> ResponseEntity.badRequest().body(
+            ConfirmOutcome.InvalidPayload -> ResponseEntity.badRequest().body(
                 ErrorResponse(
                     error = "INVALID_PAYLOAD",
                     message = "Payload could not be decoded"
                 )
             )
 
-            IncentivesService.ConfirmOutcome.ProfileNotFound -> ResponseEntity.status(404).body(
+            ConfirmOutcome.ProfileNotFound -> ResponseEntity.status(404).body(
                 ErrorResponse(
                     error = "PROFILE_NOT_FOUND",
                     message = "No AKERS profile exists for the encoded UUID"
                 )
             )
 
-            IncentivesService.ConfirmOutcome.NonceInvalid -> ResponseEntity.status(409).body(
+            ConfirmOutcome.NonceInvalid -> ResponseEntity.status(409).body(
                 ErrorResponse(
                     error = "NONCE_INVALID",
                     message = "The submitted nonce is not the current expected nonce. Request a fresh ad link."
                 )
             )
 
-            is IncentivesService.ConfirmOutcome.TooEarly ->
+            is ConfirmOutcome.TooEarly ->
             {
                 val retryAfterSeconds = max(1L, (outcome.retryAfterMs + 999L) / 1000L)
                 ResponseEntity.status(429)
