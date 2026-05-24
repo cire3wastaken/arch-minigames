@@ -917,7 +917,7 @@ object GameService
                 it.player.addPotionEffect(
                     PotionEffect(
                         PotionEffectType.REGENERATION,
-                        5 * 20, 2, false, true
+                        5 * 20, 1, false, true
                     )
                 )
 
@@ -987,7 +987,7 @@ object GameService
             }
             .handler {
                 overridePotionEffect(
-                    it.player, PotionEffect(PotionEffectType.REGENERATION, 5 * 20, 2)
+                    it.player, PotionEffect(PotionEffectType.REGENERATION, 5 * 20, 1)
                 )
 
                 overridePotionEffect(
