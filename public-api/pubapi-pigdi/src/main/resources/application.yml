@@ -43,6 +43,11 @@ discord:
   client-secret: ${DISCORD_CLIENT_SECRET:}
   redirect-uri: ${DISCORD_REDIRECT_URI:https://api.arch.mc/auth/discord/callback}
 
+# Incentives (ad-watch flow)
+incentives:
+  ad-base-url: ${INCENTIVES_AD_BASE_URL:https://arch.mc/ads}
+  min-confirm-interval-ms: ${INCENTIVES_MIN_CONFIRM_INTERVAL_MS:25000}
+
 # OpenAPI / Swagger
 springdoc:
   api-docs:
