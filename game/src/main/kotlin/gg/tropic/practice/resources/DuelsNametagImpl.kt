@@ -68,7 +68,8 @@ object DuelsNametagImpl : NametagProvider("practice", Int.MAX_VALUE)
                     RED_TEAM_NAME_TAG else BLUE_TEAM_NAME_TAG
             }
 
-            val viewedTeam = viewedGame.getTeamOf(viewed)
+            val viewedTeam = viewedGame.getNullableTeam(viewed)
+                ?: return SPECTATOR_NAME_TAG
             val viewerTeam = viewedGame.getNullableTeam(viewer)
             if (!viewedGame.shouldContainIdentifiableTeams)
             {

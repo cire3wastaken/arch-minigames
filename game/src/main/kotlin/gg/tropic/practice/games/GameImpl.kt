@@ -272,9 +272,8 @@ open class GameImpl(
     fun preWaitRemove(player: Player)
     {
         teamMutLock.withLock {
-            val team = getTeamOf(player)
             expectationModel.players -= player.uniqueId
-            team.players.minusAssign(player.uniqueId)
+            getNullableTeam(player)?.players?.minusAssign(player.uniqueId)
         }
     }
 
