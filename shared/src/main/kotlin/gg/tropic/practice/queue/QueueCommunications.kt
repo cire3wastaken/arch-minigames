@@ -91,6 +91,7 @@ object QueueCommunications
                     ?.score
                     ?: 1000
 
+                println("[lobby-queue] publishing join packet: kit=${kit.id} type=${queueType.name} size=${teamSize} leader=${player.uniqueId}")
                 createMessage(
                     packet = "join",
                     "entry" to QueueEntry(
@@ -109,6 +110,7 @@ object QueueCommunications
                     context = AwareThreadContext.SYNC,
                     channel = "communications-gamequeue"
                 )
+                println("[lobby-queue] published join packet for ${player.name}")
             }
             .exceptionally {
                 player.sendMessage("${CC.RED}We were unable to put you in the queue!")
