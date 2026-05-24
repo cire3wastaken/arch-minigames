@@ -20,4 +20,7 @@ interface MiniGameConfiguration : AbstractTypeSerializable
     val shouldBeAbleToReconnect: Boolean
     val reconnectThreshold: Long
     val gameDescription: String
+
+    val preferFillingExistingTeams: Boolean
+        get() = false
 }

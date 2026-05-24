@@ -146,20 +146,26 @@ class MiniGameJoinIntoGameHandler : RPCHandler<JoinIntoGameRequest, JoinIntoGame
                         }
                     } else
                     {
-                        // Original logic for parties that fit in one team
-                        // Step 1: Check if there are empty teams that can fit the party
+                        val preferFilling = gameImpl.miniGameLifecycle!!.configuration.preferFillingExistingTeams
                         val emptyTeams = gameImpl.teams.filter { it.players.isEmpty() }
-                        if (emptyTeams.isNotEmpty())
+                        val nonEmptyTeamsWithSpace = gameImpl.teams
+                            .filter { it.players.isNotEmpty() && it.players.size + partySize <= maxPlayersPerTeam }
+                            .let { teams ->
+                                // When preferFilling, pack the fullest team first so we keep team count low.
+                                // Otherwise, prefer the emptiest team for balanced fills.
+                                if (preferFilling) teams.sortedByDescending { it.players.size }
+                                else teams.sortedBy { it.players.size }
+                            }
+
+                        // If preferFilling and a partial team can take the party, fill it before opening a new team.
+                        val fillFirst = preferFilling && nonEmptyTeamsWithSpace.isNotEmpty()
+
+                        if (emptyTeams.isNotEmpty() && !fillFirst)
                         {
                             val targetTeam = emptyTeams.first()
                             gameImpl.preWaitAdd(request.players.toList(), targetTeam.teamIdentifier)
                         } else
                         {
-                            // Step 2: Check if there are non-empty teams that can fit the party
-                            val nonEmptyTeamsWithSpace = gameImpl.teams
-                                .filter { it.players.isNotEmpty() && it.players.size + partySize <= maxPlayersPerTeam }
-                                .sortedBy { it.players.size } // Prefer teams with fewer players for better balance
-
                             if (nonEmptyTeamsWithSpace.isNotEmpty())
                             {
                                 val targetTeam = nonEmptyTeamsWithSpace.first()
