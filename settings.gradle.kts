@@ -62,6 +62,10 @@ include(
     "minigames:hunger-games-lobby",
     "minigames:hunger-games-shared",
 
+    "minigames:pof",
+    "minigames:pof-lobby",
+    "minigames:pof-shared",
+
     "minigames:duels-modern-lobby",
 
     "spigot-integration"
