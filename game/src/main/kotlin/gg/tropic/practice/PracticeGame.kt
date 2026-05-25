@@ -10,6 +10,7 @@ import gg.scala.lemon.channel.ChatChannelService
 import gg.scala.lemon.redirection.aggregate.ServerAggregateHandler
 import gg.scala.lemon.redirection.aggregate.impl.LeastTrafficServerAggregateHandler
 import gg.tropic.practice.games.GameService
+import gg.tropic.practice.metadata.SystemMetadataService
 import gg.tropic.practice.minigame.*
 import gg.tropic.practice.settings.ChatVisibility
 import gg.tropic.practice.settings.DuelsSettingCategory
@@ -81,14 +82,44 @@ class PracticeGame : ExtendedScalaPlugin()
                 val bukkitPlayer = Bukkit.getPlayer(player)
                 val game = GameService.byPlayerOrSpectator(viewer.uniqueId)
                 val viewerHostedWorld = viewer.toHostedWorld()
+                val senderHostedWorld = bukkitPlayer?.toHostedWorld()
+
+                // Realms are isolated from non-realm contexts (duels, duels
+                // lobby, etc.). A realm viewer should only see chat from other
+                // realm players (cross-realm OK), and realm chat shouldn't
+                // leak into non-realm contexts either. For same-server senders
+                // we check their local hosted world; for cross-server senders
+                // we consult the network-wide hosted-world cache so we can
+                // tell whether a remote sender is currently in a realm.
+                val viewerInRealm = viewerHostedWorld?.providerType ==
+                    WorldInstanceProviderType.REALM
+                val senderInRealm = if (bukkitPlayer != null)
+                {
+                    senderHostedWorld?.providerType ==
+                        WorldInstanceProviderType.REALM
+                } else
+                {
+                    SystemMetadataService.allHostedWorldInstances().any {
+                        it.type == WorldInstanceProviderType.REALM &&
+                            player in it.onlinePlayers
+                    }
+                }
+                if (viewerInRealm != senderInRealm)
+                {
+                    return@displayToPlayer false
+                }
+                if (viewerInRealm)
+                {
+                    // both sides are in realms — allow cross-realm chat
+                    return@displayToPlayer true
+                }
+
                 if (viewerHostedWorld != null && viewerHostedWorld.providerType != WorldInstanceProviderType.REALM)
                 {
-                    val senderHostedWorld = bukkitPlayer?.toHostedWorld()
                     return@displayToPlayer senderHostedWorld != null &&
                         senderHostedWorld.globalId == viewerHostedWorld.globalId
                 }
 
-                val senderHostedWorld = bukkitPlayer?.toHostedWorld()
                 if (
                     bukkitPlayer != null &&
                     senderHostedWorld != null &&

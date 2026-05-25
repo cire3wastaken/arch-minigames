@@ -7,7 +7,10 @@ import gg.scala.commons.annotations.ServiceablePackage
 import gg.scala.commons.annotations.container.ContainerEnable
 import gg.scala.commons.command.ScalaCommand
 import gg.scala.commons.core.plugin.*
+import gg.scala.lemon.channel.ChatChannelService
+import gg.tropic.practice.metadata.SystemMetadataService
 import gg.tropic.practice.minigame.MiniGameSerializers
+import gg.tropic.practice.ugc.WorldInstanceProviderType
 
 /**
  * @author GrowlyX
@@ -49,6 +52,22 @@ class PracticeLobby : ExtendedScalaPlugin()
 
         MiniGameSerializers.configure()
         SettingMenu.defaultCategory = "Minigames"
+
+        // Realm chat is isolated from non-realm contexts. Lobby players
+        // are never inside a realm hosted world themselves (realms live on
+        // housing game servers), so we just hide chat from any sender who
+        // is currently inside a realm. Same-server senders on a lobby are
+        // never in a realm either, so the network-wide hosted-world cache
+        // is the only check we need.
+        ChatChannelService.default.displayToPlayer { player, _ ->
+            val senderInRealm = SystemMetadataService
+                .allHostedWorldInstances()
+                .any {
+                    it.type == WorldInstanceProviderType.REALM &&
+                        player in it.onlinePlayers
+                }
+            !senderInRealm
+        }
     }
 
     fun unregisterCommands(
