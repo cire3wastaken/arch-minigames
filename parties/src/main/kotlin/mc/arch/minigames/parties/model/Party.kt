@@ -1,6 +1,7 @@
 package mc.arch.minigames.parties.model
 
 import gg.scala.commons.util.next
+import gg.scala.lemon.util.QuickAccess
 import mc.arch.minigames.parties.service.NetworkPartyService
 import mc.arch.minigames.parties.stream.PartyMessageStream
 import net.evilblock.cubed.util.bukkit.FancyMessage
@@ -35,7 +36,10 @@ data class Party(
     fun includedMembersOnline(): List<UUID> =
         this.members.keys
             .filter {
-                Bukkit.getPlayer(it) != null
+                // Network-wide online check via Redis. `Bukkit.getPlayer` would
+                // only find members on the current server, which silently drops
+                // party members on other lobbies from things like queue warps.
+                runCatching { QuickAccess.online(it).join() }.getOrDefault(false)
             }
             .toMutableList()
             .apply {

@@ -174,7 +174,7 @@ object LobbyHotbarService
             .handler { event ->
                 event.party.includedMembersOnline().forEach { member ->
                     val lobbyPlayer = LobbyPlayerService.find(member)
-                        ?: return@handler
+                        ?: return@forEach
 
                     lobbyPlayer.player?.apply {
                         get(lobbyPlayer.state).applyToPlayer(this)
