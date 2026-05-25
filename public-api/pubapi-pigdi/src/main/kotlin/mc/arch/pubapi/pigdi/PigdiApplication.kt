@@ -1,5 +1,6 @@
 package mc.arch.pubapi.pigdi
 
+import mc.arch.pubapi.pigdi.repository.AkersProfileRepository
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
@@ -14,7 +15,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
  */
 @SpringBootApplication
 @EnableScheduling
-@EnableMongoRepositories(basePackages = ["mc.arch.pubapi.pigdi.repository"])
+@EnableMongoRepositories(basePackageClasses = [AkersProfileRepository::class])
 class PigdiApplication
 
 fun main(args: Array<String>)
