@@ -30,6 +30,7 @@ import gg.tropic.practice.queue.variants.BedWarsSubscribableMinigamePlayerQueue
 import gg.tropic.practice.queue.variants.EventsSubscribableMinigamePlayerQueue
 import gg.tropic.practice.queue.variants.HungerGamesSubscribableMinigamePlayerQueue
 import gg.tropic.practice.queue.variants.MiniWallsSubscribableMinigamePlayerQueue
+import gg.tropic.practice.queue.variants.PofSubscribableMinigamePlayerQueue
 import gg.tropic.practice.queue.variants.SkyWarsSubscribableMinigamePlayerQueue
 import gg.tropic.practice.queue.variants.robot.SubscribableDuoRobotPlayerQueue
 import gg.tropic.practice.queue.variants.robot.SubscribableSoloRobotPlayerQueue
@@ -44,6 +45,7 @@ import io.sentry.SpanStatus
 import mc.arch.commons.communications.rpc.CommunicationGateway
 import mc.arch.minigame.bedwars.neo.BedWarsMode
 import mc.arch.minigame.miniwalls.MiniWallsMode
+import mc.arch.minigame.pof.PofMode
 import mc.arch.minigames.hungergames.HungerGamesMode
 import mc.arch.minigames.microgames.events.EventType
 import mc.arch.minigames.skywars.SkyWarsMode
@@ -553,6 +555,8 @@ object GameQueueManager
 
                     transaction.status = SpanStatus.OK
                 } catch (e: Exception) {
+                    println("[queue] join FAILED: ${e.message}")
+                    e.printStackTrace()
                     Sentry.captureException(e)
                     transaction.throwable = e
                     transaction.status = SpanStatus.INTERNAL_ERROR
@@ -660,7 +664,6 @@ object GameQueueManager
         val mappings = listOf(
             "sumoevent" to EventType.SUMO,
             "oitcevent" to EventType.OITC,
-            "pofevent" to EventType.PILLAR_OF_FORTUNE,
             "rlglevent" to EventType.RED_LIGHT_GREEN_LIGHT
         )
 
@@ -719,6 +722,23 @@ object GameQueueManager
             {
                 println("tracked SG queue")
                 queueHolder.trackPlayerQueue(HungerGamesSubscribableMinigamePlayerQueue(sgKit, pair.first))
+            } else
+            {
+                queueHolder.forgetPlayerQueue(pair.second)
+            }
+        }
+
+        val pofKitId = listOf(
+            PofMode.SOLO to "pof_main",
+            PofMode.DUOS to "pof_main",
+        )
+
+        pofKitId.forEach { pair ->
+            val pofKit = KitDataSync.cached().kits[pair.second]
+            if (pofKit != null)
+            {
+                println("tracked pof queue (${pair.first})")
+                queueHolder.trackPlayerQueue(PofSubscribableMinigamePlayerQueue(pofKit, pair.first))
             } else
             {
                 queueHolder.forgetPlayerQueue(pair.second)
