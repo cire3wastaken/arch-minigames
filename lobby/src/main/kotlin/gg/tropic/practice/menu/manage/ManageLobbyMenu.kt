@@ -194,6 +194,48 @@ class ManageLobbyMenu : Menu("Managing Minigame Lobby")
                 hologram.configure()
             }
         ),
+        29 to editPosition(
+            PracticeConfigurationService,
+            title = "Rank Gift NPC #1",
+            material = XMaterial.DIAMOND,
+            getter = {
+                local().rankGiftTop3NPCs?.getOrNull(0) ?: Position(0.0, 0.0, 0.0)
+            },
+            setter = {
+                val current = local().rankGiftTop3NPCs ?: mutableListOf()
+                while (current.size <= 0) current.add(null)
+                current[0] = it
+                local().rankGiftTop3NPCs = current
+            }
+        ),
+        30 to editPosition(
+            PracticeConfigurationService,
+            title = "Rank Gift NPC #2",
+            material = XMaterial.IRON_INGOT,
+            getter = {
+                local().rankGiftTop3NPCs?.getOrNull(1) ?: Position(0.0, 0.0, 0.0)
+            },
+            setter = {
+                val current = local().rankGiftTop3NPCs ?: mutableListOf()
+                while (current.size <= 1) current.add(null)
+                current[1] = it
+                local().rankGiftTop3NPCs = current
+            }
+        ),
+        31 to editPosition(
+            PracticeConfigurationService,
+            title = "Rank Gift NPC #3",
+            material = XMaterial.GOLD_INGOT,
+            getter = {
+                local().rankGiftTop3NPCs?.getOrNull(2) ?: Position(0.0, 0.0, 0.0)
+            },
+            setter = {
+                val current = local().rankGiftTop3NPCs ?: mutableListOf()
+                while (current.size <= 2) current.add(null)
+                current[2] = it
+                local().rankGiftTop3NPCs = current
+            }
+        ),
     )
 
     override fun size(buttons: Map<Int, Button>) = 45

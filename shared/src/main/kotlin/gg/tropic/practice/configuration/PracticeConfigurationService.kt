@@ -134,6 +134,12 @@ object PracticeConfigurationService : DataSyncService<PracticeConfiguration>()
                 value.rankGiftLeaderboardLocation = null
             }
         }
+
+        stage("add-rankgift-NPCs") {
+            minigameConfigurations.forEach { (_, value) ->
+                value.rankGiftTop3NPCs = mutableListOf<Position?>()
+            }
+        }
     }
 
     internal var typeProvider: MiniGameTypeProvider? = null
