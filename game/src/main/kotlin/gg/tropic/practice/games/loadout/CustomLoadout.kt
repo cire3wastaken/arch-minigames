@@ -18,7 +18,10 @@ class CustomLoadout(
     override fun apply(player: Player)
     {
         kit.populate(player)
-        player.inventory.contents = loadout.inventoryContents.deepClone()
+        if (loadout.inventoryContents.any { it != null })
+        {
+            player.inventory.contents = loadout.inventoryContents.deepClone()
+        }
         player.fixInventoryBasedOnRBTeamColor()
         player.updateInventory()
     }
