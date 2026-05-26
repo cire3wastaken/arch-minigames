@@ -1,5 +1,6 @@
 package gg.tropic.practice.commands
 
+import com.cryptomorin.xseries.XMaterial
 import gg.scala.commons.acf.CommandHelp
 import gg.scala.commons.acf.ConditionFailedException
 import gg.scala.commons.acf.annotation.*
@@ -252,6 +253,34 @@ object KitCommands : ScalaCommand()
             "${CC.GREEN}You have set the display icon for the kit ${CC.YELLOW}${kit.displayName}${CC.GREEN} to the item in your hand with the type ${CC.WHITE}${
                 item.type.name.lowercase().replace("_", " ")
             }${CC.GREEN}."
+        )
+    }
+
+    @AssignPermission
+    @Subcommand("seticon-typed")
+    @CommandCompletion("@kits")
+    @Description("Set a kit's display icon by XMaterial name (works without holding the item).")
+    fun onDisplayIconTyped(player: ScalaPlayer, kit: Kit, @Single xmat: String)
+    {
+        val xMaterial = XMaterial.matchXMaterial(xmat.uppercase()).orElse(null)
+            ?: throw ConditionFailedException(
+                "Unknown XMaterial: ${CC.YELLOW}$xmat${CC.RED}."
+            )
+
+        val item = xMaterial.parseItem()
+            ?: throw ConditionFailedException(
+                "${CC.YELLOW}${xMaterial.name}${CC.RED} cannot be constructed on this server JAR. Run this command from a JAR that supports the material."
+            )
+
+        kit.displayIcon = item
+
+        with(KitService.cached()) {
+            KitService.cached().kits[kit.id] = kit
+            KitService.sync(this)
+        }
+
+        player.sendMessage(
+            "${CC.GREEN}You have set the display icon for the kit ${CC.YELLOW}${kit.displayName}${CC.GREEN} to ${CC.WHITE}${xMaterial.name}${CC.GREEN}."
         )
     }
 
