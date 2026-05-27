@@ -16,6 +16,10 @@ data class GameReference(
     val server: String,
     val players: Set<UUID>,
     val onlinePlayers: Int?,
+    // UUIDs of players currently connected to this game's instance. Unlike [players]
+    // (the static expectation roster), this shrinks as players leave/disconnect, so it
+    // reflects who is *actually* in the game right now.
+    val onlinePlayerIds: Set<UUID>? = emptySet(),
     val spectators: Set<UUID>,
     val majorityAllowsSpectators: Boolean,
     val queueId: String? = null,
