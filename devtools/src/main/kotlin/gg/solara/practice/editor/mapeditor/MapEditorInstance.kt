@@ -10,7 +10,8 @@ import org.bukkit.World
  */
 data class MapEditorInstance(
     val slimeWorldName: String,
-    val world: World
+    val world: World,
+    val readOnly: Boolean
 ): Terminable
 {
     override fun close()

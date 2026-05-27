@@ -135,6 +135,28 @@ object LegacySlimeProvider : SlimeProvider
         slimePlugin.importWorld(savedWorldFolder, newSlimeName, mongoLoader)
     }
 
+    override fun loadsReadOnly(formatVersion: Int?): Boolean =
+        // v9 is SWM's native format → writable here; v10+ is modern ASP and can't be parsed
+        // by SWM anyway. Unknown version is treated as foreign.
+        formatVersion == null || formatVersion >= 10
+
+    override fun saveLoadedTemplate(name: String): Boolean
+    {
+        val bukkitWorld = Bukkit.getWorld(name) ?: return false
+        val craftWorld = bukkitWorld as? CraftWorld ?: return false
+        val worldServer = craftWorld.handle as? CustomWorldServer ?: return false
+
+        val slimeWorld = worldServer.slimeWorld
+        if (slimeWorld.isReadOnly) return false
+
+        // The editor's World.save() flushes dirty NMS chunks back into the CraftSlimeWorld;
+        // serialize() then captures that live block state. Write it straight back to the
+        // mongo template store the world was loaded from (lock=false — we already hold it).
+        return runCatching {
+            mongoLoader.saveWorld(name, slimeWorld.serialize(), false)
+        }.isSuccess
+    }
+
     override fun worldExists(name: String) = mongoLoader.worldExists(name)
 
     override fun listTemplates(): List<String> = mongoLoader.listWorlds()

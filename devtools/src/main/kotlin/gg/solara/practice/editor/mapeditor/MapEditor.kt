@@ -287,12 +287,6 @@ class MapEditor(private val player: Player, private val slime: SlimeProvider) : 
     {
         var previousInstance = visiting
 
-        // Re-clicking the currently-visited template (or one whose world is still
-        // registered from a previous attempt) would otherwise blow up inside ASP with
-        // "World X is already loaded". Close the previous instance first so its Bukkit
-        // world is unregistered before we ask ASP to load again — and null out the
-        // local reference so the trailing close at the bottom doesn't unload the
-        // freshly-loaded world (same name, different World object).
         if (previousInstance?.slimeWorldName == template || Bukkit.getWorld(template) != null)
         {
             previousInstance?.closeAndReportException()
@@ -300,17 +294,14 @@ class MapEditor(private val player: Player, private val slime: SlimeProvider) : 
             visiting = null
         }
 
+        val formatByte = slimeVersionCache[template]
+            ?: runCatching { slime.versionOf(template) }.getOrNull()?.also {
+                slimeVersionCache[template] = it
+            }
+        val readOnly = slime.loadsReadOnly(formatByte)
+
         try
         {
-            // Legacy-format (v9) slimes are loaded read-only so a writable load doesn't
-            // round-trip them into v13 and clobber the legacy fleet's copy. Modern-format
-            // (v10+) slimes load writable so block edits (sign text, placements) actually
-            // stick — a read-only ASP world silently rejects all mutations.
-            val formatByte = slimeVersionCache[template]
-                ?: runCatching { slime.versionOf(template) }.getOrNull()?.also {
-                    slimeVersionCache[template] = it
-                }
-            val readOnly = formatByte == null || formatByte <= 9
             slime.loadAndRegisterTemplate(template, readOnly = readOnly)
         }
         catch (ex: Throwable)
@@ -333,7 +324,7 @@ class MapEditor(private val player: Player, private val slime: SlimeProvider) : 
                 XSound.BLOCK_NOTE_BLOCK_PLING.play(player, 1.0f, 0.2f)
             }
 
-        val instance = MapEditorInstance(template, newWorld)
+        val instance = MapEditorInstance(template, newWorld, readOnly)
         val map = MapService.mapWithSlime(instance.slimeWorldName)
             ?: return run {
                 player.sendMessage("${CC.RED}No map row references slime ${CC.YELLOW}$template${CC.RED}.")
@@ -509,13 +500,24 @@ class MapEditor(private val player: Player, private val slime: SlimeProvider) : 
                     return@context
                 }
 
+                if (visiting!!.readOnly)
+                {
+                    player.sendMessage("${CC.RED}This is a legacy (read-only) map — edits can't be saved here. Edit it on legacy devtools.")
+                    XSound.BLOCK_NOTE_BLOCK_PLING.play(player, 1.0f, 0.2f)
+                    return@context
+                }
+
+                val slimeName = visiting!!.slimeWorldName
+
                 visiting!!.world.save()
+                if (!slime.saveLoadedTemplate(slimeName))
+                {
+                    player.sendMessage("${CC.RED}Failed to persist the slime — is the world still loaded and writable?")
+                    XSound.BLOCK_NOTE_BLOCK_PLING.play(player, 1.0f, 0.2f)
+                    return@context
+                }
 
                 with(MapService.cached()) {
-                    // Saving may have rewritten the slime in a different format; resync the
-                    // map row's version field from the actual bytes so queue/cache filters
-                    // see the truth.
-                    val slimeName = visiting!!.slimeWorldName
                     MapService.mapWithSlime(slimeName)?.let { row ->
                         row.version = MapManageServices.detectVersion(slimeName)
                         maps[row.name] = row

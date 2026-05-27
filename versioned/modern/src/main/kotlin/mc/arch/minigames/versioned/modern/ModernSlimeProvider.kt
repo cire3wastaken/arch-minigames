@@ -101,6 +101,19 @@ object ModernSlimeProvider : SlimeProvider
         api.saveWorld(slime)
     }
 
+    override fun saveLoadedTemplate(name: String): Boolean
+    {
+        // getLoadedWorld returns the live SlimeWorldInstance; api.saveWorld resolves the
+        // backing SlimeLevelInstance by name and serializes its current chunk state through
+        // the mongo loader (SlimeLevelInstance.save -> SlimeLoader.saveWorld). Refuse
+        // read-only loads so we never round-trip a legacy (v9) slime into v13.
+        val loaded = api.getLoadedWorld(name) ?: return false
+        if (loaded.isReadOnly) return false
+
+        api.saveWorld(loaded)
+        return true
+    }
+
     override fun worldExists(name: String) = mongoDBLoader.worldExists(name)
 
     override fun listTemplates(): List<String> = mongoDBLoader.listWorlds()
@@ -115,6 +128,12 @@ object ModernSlimeProvider : SlimeProvider
         val bytes = mongoDBLoader.readWorld(name) ?: return null
         if (bytes.size < 3) null else bytes[2].toInt() and 0xFF
     }.getOrNull()
+
+    override fun loadsReadOnly(formatVersion: Int?): Boolean =
+        // v10+ is modern ASP's native format → writable here; v9 is a legacy SWM slime that
+        // a writable load would round-trip into v13 and clobber the legacy fleet's copy.
+        // Unknown version is treated as foreign.
+        formatVersion == null || formatVersion <= 9
 
     override fun loadAndRegisterTemplate(name: String, readOnly: Boolean)
     {
