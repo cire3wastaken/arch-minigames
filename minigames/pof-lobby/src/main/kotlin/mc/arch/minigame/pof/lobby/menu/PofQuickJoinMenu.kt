@@ -20,9 +20,9 @@ class PofQuickJoinMenu : Menu("Join a Pillar of Fortune game")
             .toConciseJoinButton("solo"),
 
         13 to PofGameType
-            .mode("duos")
+            .mode("solo_legacy")
             .toConciseJoinItem()
-            .toConciseJoinButton("duos"),
+            .toConciseJoinButton("solo_legacy"),
 
         15 to ItemBuilder
             .of(XMaterial.EMERALD)

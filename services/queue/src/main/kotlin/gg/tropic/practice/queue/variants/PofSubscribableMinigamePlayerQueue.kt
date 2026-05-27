@@ -1,7 +1,6 @@
 package gg.tropic.practice.queue.variants
 
 import gg.tropic.practice.application.api.defaults.kit.ImmutableKit
-import gg.tropic.practice.provider.MiniProviderVersion
 import gg.tropic.practice.queue.AbstractSubscribableMinigamePlayerQueue
 import gg.tropic.practice.queue.QueueEntry
 import gg.tropic.practice.queue.QueueType
@@ -16,7 +15,7 @@ class PofSubscribableMinigamePlayerQueue(
     kit = kit,
     selectNewestInstance = true,
     queueType = QueueType.Casual,
-    miniProvider = MiniProviderVersion.MODERN
+    miniProvider = mode.providerVersion
 )
 {
     override fun constructConfigurationForInitiatorEntry(entry: QueueEntry) =

@@ -730,7 +730,7 @@ object GameQueueManager
 
         val pofKitId = listOf(
             PofMode.SOLO to "pof_main",
-            PofMode.DUOS to "pof_main",
+            PofMode.SOLO_LEGACY to "legacy_pof_main",
         )
 
         pofKitId.forEach { pair ->

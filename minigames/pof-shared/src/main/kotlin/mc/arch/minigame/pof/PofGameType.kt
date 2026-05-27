@@ -17,7 +17,7 @@ object PofGameType : MiniGameTypeMetadata(
             id = "solo",
             description = "Random loot rains down — outlast everyone on your pillar!",
             queueId = "pof_main:Casual:1v1",
-            displayName = "Solo",
+            displayName = "Solo (Modern)",
             displayItem = ItemBuilder
                 .of(XMaterial.GOLD_BLOCK)
                 .build(),
@@ -27,17 +27,17 @@ object PofGameType : MiniGameTypeMetadata(
             npcSkinValue = "ewogICJ0aW1lc3RhbXAiIDogMTYyMzQyMzEzNDMxMSwKICAicHJvZmlsZUlkIiA6ICJjNjc3MGJjZWMzZjE0ODA3ODc4MTU0NWRhMGFmMDI1NCIsCiAgInByb2ZpbGVOYW1lIiA6ICJDVUNGTDE2IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2Q0Zjg5Yjg0YzNhZGU4ZTJjYzRlZjc1MTgwZDI2OGEwMzM5YzdjZTA5ZjJkYmU3ZjBiMWU5YTViNzdlY2I4NjUiCiAgICB9CiAgfQp9",
             npcSkinSignature = "kFQ++Gfc7RTFx8eZ85Mrho/7ZlW1zltqJrltGi3Jb6rL9iEkppoGlfop8t7UU4JeSUEx/P9sjs58QQ+jWaeIb6lv7YZvJ0fmd3hzSvhcPFGBgwdBsu0GSp3e1RHV8HNwaIi/qg7LeQvQ6IaZ189eBKJxWULU4NxNw7YTtZyUz6ezaPfQETk7Ctb0FT52IUuyPYNVUnlI/Tu1BkmD5VWxzjJpJ1L7DrydBK+SULzRDNea1x3VSEKdNXT5M3ierMt8KqPy8B4ZT6Z3AS5WyE0hsP9dmoJAxbIlswFgjsmJWswYMI+RpNKORGEnciVu9Yqbbv/M05+6y/6PJju6vHotl40mzU8rqLkxuc/LCuWuRpRMRTChNKzgGaDfcDBQP/3T1URmKoyBj4DqLm99U1sl4Kum9aUTbzZF868aNBzRkX9oltL6zaBDuVbuJArIE1d+I35gcSMEWc1RsS/x4/N0kV7OSGLLAj1HnDghT/az3YEK+5IPLcY/GojHDIIsoDopaypj49p1eoiQUml7vFVtCml8gGRERFGOk92/gq7Q5tV63ysf1SN7CHUSfX+EowvNN0KAJAOjSeYTkzhLVakh3MCMt4S62/NqvXWtQfX97tAE/hEd6OXGymP7lLysMTZYT8Zb2I2umMkXn8ay/xxSzKO1qg+4J+cR0r/fAbsQLpM="
         ),
-        "duos" to MiniGameModeMetadata(
-            id = "duos",
-            description = "Random loot rains down — team up and be the last duo standing!",
-            queueId = "pof_main:Casual:2v2",
-            displayName = "Duos",
+        "solo_legacy" to MiniGameModeMetadata(
+            id = "solo_legacy",
+            description = "Random loot rains down — outlast everyone on your pillar! (1.8)",
+            queueId = "legacy_pof_main:Casual:1v1",
+            displayName = "Solo (Legacy)",
             displayItem = ItemBuilder
                 .of(XMaterial.GOLD_INGOT)
                 .build(),
-            mapGroup = "pof_main",
-            kitID = "pof_main",
-            mode = PofMode.DUOS,
+            mapGroup = "pof_legacy_main",
+            kitID = "legacy_pof_main",
+            mode = PofMode.SOLO_LEGACY,
             npcSkinValue = "ewogICJ0aW1lc3RhbXAiIDogMTYyMzQyMzEzNDMxMSwKICAicHJvZmlsZUlkIiA6ICJjNjc3MGJjZWMzZjE0ODA3ODc4MTU0NWRhMGFmMDI1NCIsCiAgInByb2ZpbGVOYW1lIiA6ICJDVUNGTDE2IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlL2Q0Zjg5Yjg0YzNhZGU4ZTJjYzRlZjc1MTgwZDI2OGEwMzM5YzdjZTA5ZjJkYmU3ZjBiMWU5YTViNzdlY2I4NjUiCiAgICB9CiAgfQp9",
             npcSkinSignature = "kFQ++Gfc7RTFx8eZ85Mrho/7ZlW1zltqJrltGi3Jb6rL9iEkppoGlfop8t7UU4JeSUEx/P9sjs58QQ+jWaeIb6lv7YZvJ0fmd3hzSvhcPFGBgwdBsu0GSp3e1RHV8HNwaIi/qg7LeQvQ6IaZ189eBKJxWULU4NxNw7YTtZyUz6ezaPfQETk7Ctb0FT52IUuyPYNVUnlI/Tu1BkmD5VWxzjJpJ1L7DrydBK+SULzRDNea1x3VSEKdNXT5M3ierMt8KqPy8B4ZT6Z3AS5WyE0hsP9dmoJAxbIlswFgjsmJWswYMI+RpNKORGEnciVu9Yqbbv/M05+6y/6PJju6vHotl40mzU8rqLkxuc/LCuWuRpRMRTChNKzgGaDfcDBQP/3T1URmKoyBj4DqLm99U1sl4Kum9aUTbzZF868aNBzRkX9oltL6zaBDuVbuJArIE1d+I35gcSMEWc1RsS/x4/N0kV7OSGLLAj1HnDghT/az3YEK+5IPLcY/GojHDIIsoDopaypj49p1eoiQUml7vFVtCml8gGRERFGOk92/gq7Q5tV63ysf1SN7CHUSfX+EowvNN0KAJAOjSeYTkzhLVakh3MCMt4S62/NqvXWtQfX97tAE/hEd6OXGymP7lLysMTZYT8Zb2I2umMkXn8ay/xxSzKO1qg+4J+cR0r/fAbsQLpM="
         )
