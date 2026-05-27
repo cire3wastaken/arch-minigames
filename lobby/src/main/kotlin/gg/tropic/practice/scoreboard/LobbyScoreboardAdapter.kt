@@ -15,6 +15,7 @@ import gg.scala.queue.spigot.stream.SpigotRedisService
 import gg.tropic.game.extensions.economy.EconomyDataSync
 import gg.tropic.game.extensions.economy.EconomyProfileService
 import gg.tropic.game.extensions.profile.CorePlayerProfileService
+import gg.tropic.practice.isModernDuelsServer
 import gg.tropic.practice.minigame.MinigameLobby
 import gg.tropic.practice.player.LobbyPlayerService
 import gg.tropic.practice.player.formattedDomain
@@ -322,8 +323,6 @@ object LobbyScoreboardAdapter : ScoreboardAdapter()
             return MinigameLobby.customizer().scoreboard().provideTitle()
         }
 
-        return "${CC.B_PRI}Duels${
-            if ("mipdev" in ServerSync.getLocalGameServer().groups) " ${CC.D_GRAY}(dev)" else ""
-        }"
+        return if (isModernDuelsServer()) "${CC.B_PRI}Modern Duels" else "${CC.B_PRI}Duels"
     }
 }
