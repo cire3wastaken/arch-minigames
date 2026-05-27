@@ -15,9 +15,12 @@ import gg.tropic.practice.minigame.MiniGameScoreboard
 import gg.tropic.practice.minigame.MiniGameTypeMetadata
 import gg.tropic.practice.minigame.event.PlayerMiniGameSpectateEvent
 import gg.tropic.practice.minigame.event.functionality.MiniGamePlayerDeathEvent
+import gg.tropic.practice.provider.MiniProviderVersion
 import gg.tropic.practice.strategies.MarkSpectatorStrategy
 import mc.arch.minigame.pof.PofGameConfiguration
 import mc.arch.minigame.pof.PofGameType
+import mc.arch.minigames.pof.loadout.LegacyPofLootTable
+import mc.arch.minigames.pof.loadout.ModernPofLootTable
 import mc.arch.minigames.pof.loadout.PofLoadout
 import mc.arch.minigames.pof.loadout.PofLootTable
 import mc.arch.minigames.pof.rewards.PofRewards
@@ -74,6 +77,10 @@ class PofGameLifecycle(
 
     private val isTeamMode: Boolean get() = configuration.mode.teamSize > 1
     private val mode get() = PofGameType.gameModes.values.first { it.mode === configuration.mode }
+
+    private val lootTable: PofLootTable =
+        if (configuration.mode.providerVersion == MiniProviderVersion.LEGACY) LegacyPofLootTable
+        else ModernPofLootTable
 
     private fun isActive(): Boolean =
         !gameEnded.get() &&
@@ -771,7 +778,7 @@ class PofGameLifecycle(
             val rareUnlocked = System.currentTimeMillis() - gameStartTime >= configuration.rareUnlockMs
             aliveResources().forEach { resources ->
                 val player = resources.toPlayer() ?: return@forEach
-                val item = PofLootTable.roll(rareUnlocked)
+                val item = lootTable.roll(rareUnlocked)
                 val leftover = player.inventory.addItem(item)
                 leftover.values.forEach { drop ->
                     player.world.dropItemNaturally(player.location, drop)
