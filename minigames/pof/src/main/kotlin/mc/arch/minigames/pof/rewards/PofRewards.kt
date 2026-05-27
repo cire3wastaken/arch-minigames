@@ -97,7 +97,10 @@ object PofRewards
 
             if (resources.kills > 0)
             {
-                statisticWrite(CorePofStatistic.KILLS.toCore(), CorePofStatistic.KILLS.toMode(mode)) {
+                statisticWrite(
+                    CorePofStatistic.KILLS.toCore(), CorePofStatistic.KILLS.toMode(mode),
+                    CorePofStatistic.KILLS_DAILY.toCore(), CorePofStatistic.KILLS_DAILY.toMode(mode)
+                ) {
                     add(resources.kills.toLong())
                 }
             }
@@ -115,7 +118,10 @@ object PofRewards
             }
             if (resources.lootPickedUp > 0)
             {
-                statisticWrite(CorePofStatistic.LOOT_PICKED_UP.toCore(), CorePofStatistic.LOOT_PICKED_UP.toMode(mode)) {
+                statisticWrite(
+                    CorePofStatistic.LOOT_PICKED_UP.toCore(), CorePofStatistic.LOOT_PICKED_UP.toMode(mode),
+                    CorePofStatistic.LOOT_PICKED_UP_WEEKLY.toCore(), CorePofStatistic.LOOT_PICKED_UP_WEEKLY.toMode(mode)
+                ) {
                     add(resources.lootPickedUp.toLong())
                 }
             }

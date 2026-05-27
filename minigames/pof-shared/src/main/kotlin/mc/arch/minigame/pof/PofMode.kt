@@ -20,15 +20,17 @@ enum class PofMode(
         minimumPlayersRequiredToEnterStarting = 4,
         minimumPlayersRequiredToEnterFastForward = 6,
         startGameCountDown = 30,
-        displayName = "Solo"
+        displayName = "Solo (Modern)",
+        providerVersion = MiniProviderVersion.MODERN
     ),
-    DUOS(
-        teamSize = 2,
-        format = PofGameFormat.Duos,
+    SOLO_LEGACY(
+        teamSize = 1,
+        format = PofGameFormat.Solo,
         minimumPlayersRequiredToEnterStarting = 4,
-        minimumPlayersRequiredToEnterFastForward = 8,
-        startGameCountDown = 45,
-        displayName = "Duos"
+        minimumPlayersRequiredToEnterFastForward = 6,
+        startGameCountDown = 30,
+        displayName = "Solo (Legacy)",
+        providerVersion = MiniProviderVersion.LEGACY
     );
 
     override fun maxPlayers() = format.teamCount * teamSize

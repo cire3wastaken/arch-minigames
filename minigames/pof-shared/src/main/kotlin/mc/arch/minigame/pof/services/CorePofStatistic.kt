@@ -28,6 +28,12 @@ enum class CorePofStatistic(
             if (mode != null) kit(mode.kitID) else kit("pof")
         }
     }),
+    KILLS_DAILY({ mode ->
+        statisticIdFrom(TrackedKitStatistic.Kills) {
+            daily()
+            if (mode != null) kit(mode.kitID) else kit("pof")
+        }
+    }, StatisticLifetime.Daily),
     DEATHS({ mode ->
         statisticIdFrom(TrackedKitStatistic.Deaths) {
             if (mode != null) kit(mode.kitID) else kit("pof")
@@ -57,7 +63,10 @@ enum class CorePofStatistic(
     }),
     LOOT_PICKED_UP({ mode ->
         StatisticID.fromCustom("pof:${mode?.id ?: "core"}:loot-picked-up:lifetime")
-    });
+    }),
+    LOOT_PICKED_UP_WEEKLY({ mode ->
+        StatisticID.fromCustom("pof:${mode?.id ?: "core"}:loot-picked-up:weekly", lifetime = StatisticLifetime.Weekly)
+    }, StatisticLifetime.Weekly);
 
     fun toCore() = toStatisticID(null)
     fun toMode(mode: MiniGameModeMetadata?) = toStatisticID(mode)

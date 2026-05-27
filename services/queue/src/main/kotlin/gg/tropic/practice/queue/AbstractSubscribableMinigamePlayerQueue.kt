@@ -168,9 +168,9 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
         val preferredRegion = if (targetEntry.data.preferredQueueRegion == Region.Both)
             Region.NA else targetEntry.data.preferredQueueRegion
 
-        // Guard: check if any players in this entry are already in a game reference
         val alreadyInGame = GameManager.allGames().any { gameRef ->
-            targetEntry.data.players.any { it in gameRef.players }
+            gameRef.state != GameState.Completed &&
+                targetEntry.data.players.any { it in gameRef.onlinePlayerIds.orEmpty() }
         }
 
         if (alreadyInGame)

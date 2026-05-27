@@ -22,7 +22,7 @@ class PofGameConfiguration(
     override val lifecycleType: GameLifecycle = GameLifecycle.MiniGame,
     override val orchestratorID: String = "pof",
     override val maximumPlayers: Int = mode.maxPlayers(),
-    override val maximumPlayersPerTeam: Int = if (mode == PofMode.SOLO) mode.maxPlayers() else mode.teamSize,
+    override val maximumPlayersPerTeam: Int = mode.teamSize,
     override val preferFillingExistingTeams: Boolean = true,
     override val shouldBeAbleToReconnect: Boolean = false,
     override val reconnectThreshold: Long = 0L,

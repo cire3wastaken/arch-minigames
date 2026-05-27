@@ -71,6 +71,7 @@ object StatusServiceSubscriptionService
                             state = it.state,
                             players = it.toPlayers().toSet(),
                             onlinePlayers = it.toBukkitPlayers().filterNotNull().size,
+                            onlinePlayerIds = players.map(Player::getUniqueId).toSet(),
                             spectators = it.arenaWorld.players
                                 .toList()
                                 .filter { player ->
