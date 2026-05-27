@@ -408,6 +408,8 @@ class PofGameLifecycle(
         Events
             .subscribe(BlockPlaceEvent::class.java, EventPriority.HIGHEST)
             .handler { event ->
+                if (event.isCancelled) return@handler
+
                 val resources = activeParticipant(event.player) ?: return@handler
                 if (!isActive())
                 {
@@ -423,7 +425,6 @@ class PofGameLifecycle(
                     return@handler
                 }
 
-                event.isCancelled = false
                 resources.blocksPlaced += 1
                 if (!event.blockPlaced.hasMetadata("placed"))
                 {
@@ -601,6 +602,12 @@ class PofGameLifecycle(
     private fun handleEnvironmentalDamage(event: EntityDamageEvent)
     {
         if (gameEnded.get())
+        {
+            event.isCancelled = true
+            return
+        }
+
+        if (event.cause == EntityDamageEvent.DamageCause.SUFFOCATION)
         {
             event.isCancelled = true
             return
