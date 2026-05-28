@@ -2,19 +2,13 @@ package mc.arch.minigames.persistent.housing.game.menu.player
 
 import com.cryptomorin.xseries.XMaterial
 import mc.arch.minigames.persistent.housing.api.model.PlayerHouse
+import mc.arch.minigames.persistent.housing.game.inventory.HousingInventoryService
 import net.evilblock.cubed.menu.Button
 import net.evilblock.cubed.menu.Menu
 import net.evilblock.cubed.util.CC
 import net.evilblock.cubed.util.bukkit.ItemBuilder
 import org.bukkit.entity.Player
 
-/**
- * Class created on 12/29/2025
-
- * @author Max C.
- * @project arch-minigames
- * @website https://solo.to/redis
- */
 class PlayerInteractViewMenu(val house: PlayerHouse, val other: Player): Menu("Viewing Info: ${other.name}")
 {
     init
@@ -24,7 +18,9 @@ class PlayerInteractViewMenu(val house: PlayerHouse, val other: Player): Menu("V
 
     override fun size(buttons: Map<Int, Button>): Int = 27
 
-    override fun getButtons(player: Player): Map<Int, Button> = mutableMapOf<Int, Button>().also {
+    override fun getButtons(player: Player): Map<Int, Button>
+    {
+        val buttons = mutableMapOf<Int, Button>()
         val admin = house.playerIsOrAboveAdministrator(player.uniqueId)
 
         if (admin)
@@ -37,8 +33,11 @@ class PlayerInteractViewMenu(val house: PlayerHouse, val other: Player): Menu("V
                     "",
                     "${CC.YELLOW}Click to deliver the banhammer!"
                 ).toButton { _, _ ->
-                    house.housingBans.add(other.uniqueId)
-                    house.save().join()
+                    if (!house.housingBans.contains(other.uniqueId))
+                    {
+                        house.housingBans.add(other.uniqueId)
+                        house.save().join()
+                    }
 
                     if (other.isOnline)
                     {
@@ -46,6 +45,33 @@ class PlayerInteractViewMenu(val house: PlayerHouse, val other: Player): Menu("V
                     }
 
                     player.sendMessage("${CC.WHITE}${other.displayName} ${CC.GREEN}has been permanently banned by ${CC.WHITE}${player.displayName}")
+                    player.closeInventory()
+                }
+
+            buttons[13] = ItemBuilder.of(XMaterial.CAULDRON)
+                .name("${CC.GREEN}Clear Inventory")
+                .addToLore(
+                    "${CC.GRAY}Wipe every item from this player's",
+                    "${CC.GRAY}inventory, including armor.",
+                    "",
+                    "${CC.GRAY}The realm info nether star will be",
+                    "${CC.GRAY}preserved.",
+                    "",
+                    "${CC.B_RED}WARNING ${CC.RED}This cannot be undone!",
+                    "",
+                    "${CC.YELLOW}Click to clear their inventory!"
+                ).toButton { _, _ ->
+                    if (!other.isOnline)
+                    {
+                        player.sendMessage("${CC.RED}${other.name} is no longer online.")
+                        player.closeInventory()
+                        return@toButton
+                    }
+
+                    HousingInventoryService.clearInventory(other)
+                    other.sendMessage("${CC.RED}Your inventory has been cleared by a realm administrator.")
+                    player.sendMessage("${CC.B_GREEN}SUCCESS! ${CC.GREEN}Cleared ${CC.WHITE}${other.name}${CC.GREEN}'s inventory.")
+                    player.closeInventory()
                 }
 
             buttons[15] = ItemBuilder.of(XMaterial.BARRIER)
@@ -64,7 +90,10 @@ class PlayerInteractViewMenu(val house: PlayerHouse, val other: Player): Menu("V
                     }
 
                     player.sendMessage("${CC.WHITE}${other.displayName} ${CC.GREEN}has been kicked by ${CC.WHITE}${player.displayName}")
+                    player.closeInventory()
                 }
         }
+
+        return buttons
     }
 }

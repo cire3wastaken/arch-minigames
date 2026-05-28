@@ -138,6 +138,30 @@ class HouseSettingsMenu(val house: PlayerHouse): Menu("House Settings")
                 player.sendMessage("${CC.YELLOW}Your realm gamemode has been updated to: ${CC.GREEN}${next.name}")
             }
 
+        val inventorySavingEnabled = house.saveInventoriesEnabled != false
+        buttons[13] = ItemBuilder.of(XMaterial.CHEST)
+            .name("${CC.GREEN}Save Visitor Inventories: ${if (inventorySavingEnabled) "${CC.GREEN}Enabled" else "${CC.RED}Disabled"}")
+            .addToLore(
+                "${CC.GRAY}When enabled, each player's",
+                "${CC.GRAY}inventory will be saved when they",
+                "${CC.GRAY}quit your realm, and restored on",
+                "${CC.GRAY}their next visit.",
+                "",
+                "${CC.GRAY}The realm info nether star is",
+                "${CC.GRAY}always preserved.",
+                "",
+                "${CC.WHITE}Currently ${if (inventorySavingEnabled) "${CC.GREEN}Enabled" else "${CC.RED}Disabled"}",
+                "",
+                "${CC.YELLOW}Click to toggle!"
+            ).toButton { _, _ ->
+                val newValue = !inventorySavingEnabled
+                house.saveInventoriesEnabled = newValue
+                house.save()
+
+                Button.playNeutral(player)
+                player.sendMessage("${CC.YELLOW}Visitor inventory saving has been ${if (newValue) "${CC.GREEN}enabled" else "${CC.RED}disabled"}${CC.YELLOW}.")
+            }
+
         buttons[31] = MainHouseMenu.mainMenuButton(house)
 
         return buttons

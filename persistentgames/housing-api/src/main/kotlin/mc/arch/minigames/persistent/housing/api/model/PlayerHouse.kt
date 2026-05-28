@@ -59,6 +59,8 @@ data class PlayerHouse(
     val houseNPCMap: MutableMap<String, HousingNPC> = mutableMapOf(),
     val houseHologramMap: MutableMap<String, HousingHologram> = mutableMapOf(),
     var derivedCategories: CategorizationResult? = null,
+    var saveInventoriesEnabled: Boolean? = null,
+    var savedInventories: MutableMap<String, String>? = null,
     override val identifier: UUID = UUID.randomUUID(),
     override val description: MutableList<String> = mutableListOf()
 ) : IDataStoreObject, HostedWorldAttribute, Savable

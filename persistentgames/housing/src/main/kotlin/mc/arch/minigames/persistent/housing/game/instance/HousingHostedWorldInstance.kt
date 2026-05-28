@@ -14,6 +14,7 @@ import mc.arch.minigames.persistent.housing.api.VisitHouseConfiguration
 import mc.arch.minigames.persistent.housing.api.service.PlayerHousingService
 import mc.arch.minigames.persistent.housing.game.entity.HousingEntityService
 import mc.arch.minigames.persistent.housing.game.getReference
+import mc.arch.minigames.persistent.housing.game.inventory.HousingInventoryService
 import mc.arch.minigames.persistent.housing.game.item.HousingItemService
 import mc.arch.minigames.persistent.housing.game.music.HousingMusicService
 import mc.arch.minigames.persistent.housing.game.resources.HousingPlayerResources
@@ -201,9 +202,21 @@ class HousingHostedWorldInstance(
 
             HousingEntityService.spawnEntities(player)
 
+            val houseForInventory = playerHouseReference
+            if (houseForInventory != null)
+            {
+                HousingInventoryService.load(player, houseForInventory)
+            }
+
             player.inventory.setItem(8, HousingItemService.realmItem)
             player.updateInventory()
         }
+    }
+
+    override fun onLogout(player: Player)
+    {
+        val house = playerHouseReference ?: return
+        HousingInventoryService.save(player, house)
     }
 
     override fun playerResourcesOf(player: Player) = HousingPlayerResources(
