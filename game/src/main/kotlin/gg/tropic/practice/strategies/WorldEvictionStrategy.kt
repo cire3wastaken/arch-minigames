@@ -65,7 +65,7 @@ object WorldEvictionStrategy
                         Schedulers
                             .sync()
                             .runLater({
-                                if (!unloadWorld)
+                                if (unloadWorld)
                                 {
                                     Bukkit.unloadWorld(world, false)
                                 }
