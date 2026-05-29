@@ -135,7 +135,7 @@ class HousingHostedWorldInstance(
 
     override fun generateScoreboardTitle(player: Player) = "${CC.BD_RED}REALMS"
     override fun generateScoreboardLines(player: Player) = listOf(
-        "",
+        "&f                 ",
         "${CC.D_RED}Realm Name:",
         "${CC.WHITE}${playerHouseReference?.displayName ?: "${CC.RED}Unavailable"}",
         "",
@@ -146,7 +146,7 @@ class HousingHostedWorldInstance(
         "${CC.WHITE}${
             playerHouseReference?.getRole(player.uniqueId)?.coloredName()?.translateCC() ?: "${CC.GRAY}Guest"
         }",
-        "",
+        "&f                 ",
         "${CC.D_GRAY}arch.mc"
     )
 
