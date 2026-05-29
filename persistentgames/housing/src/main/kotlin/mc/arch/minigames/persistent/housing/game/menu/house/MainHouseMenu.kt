@@ -1,7 +1,7 @@
 package mc.arch.minigames.persistent.housing.game.menu.house
 
 import com.cryptomorin.xseries.XMaterial
-import gg.scala.lemon.filter.inexcusable.InexcusableTermsDataSync
+import gg.scala.lemon.filter.ChatMessageFilterHandler
 import gg.scala.lemon.util.CallbackInputPrompt
 import mc.arch.minigames.persistent.housing.api.content.HousingTime
 import mc.arch.minigames.persistent.housing.api.content.HousingWeather
@@ -317,7 +317,7 @@ class MainHouseMenu(val house: PlayerHouse, val adminMenu: Boolean) : Menu("View
                             return@CallbackInputPrompt
                         }
 
-                        if (InexcusableTermsDataSync.cached().terms.contains(it))
+                        if (ChatMessageFilterHandler.handleMessageFilter(player, it, reportToStaff = false))
                         {
                             player.sendMessage("${CC.RED}This name is not allowed. Please make sure it is appropriate!")
                             return@CallbackInputPrompt
@@ -365,7 +365,7 @@ class MainHouseMenu(val house: PlayerHouse, val adminMenu: Boolean) : Menu("View
                             return@CallbackInputPrompt
                         }
 
-                        if (InexcusableTermsDataSync.cached().terms.contains(it))
+                        if (ChatMessageFilterHandler.handleMessageFilter(player, it, reportToStaff = false))
                         {
                             player.sendMessage("${CC.RED}This name is not allowed. Please make sure it is appropriate!")
                             return@CallbackInputPrompt
