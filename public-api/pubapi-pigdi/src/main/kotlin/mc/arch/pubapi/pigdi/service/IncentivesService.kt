@@ -35,9 +35,9 @@ class IncentivesService(
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
     }
 
-    fun generateAdLink(uuid: UUID): GenerateResult
+    fun generateAdLink(uuid: UUID, name: String): GenerateResult
     {
-        val (payload, hash) = newPayload(uuid)
+        val (payload, hash) = newPayload(uuid, name)
         val url = "$adBaseUrl?payload=$payload"
 
         val query = Query(Criteria.where("_id").`is`(uuid.toString()))
@@ -56,7 +56,8 @@ class IncentivesService(
         val decoded = decodePayload(payload)
             ?: return ConfirmOutcome.InvalidPayload
 
-        val uuid = decoded.first
+        val uuid = decoded.uuid
+        val name = decoded.name
         val submittedHash = sha256(payload)
 
         val profile = akersProfileRepository.findById(uuid.toString()).orElse(null)
@@ -81,7 +82,7 @@ class IncentivesService(
             }
         }
 
-        val (nextPayload, nextHash) = newPayload(uuid)
+        val (nextPayload, nextHash) = newPayload(uuid, name)
         val nextUrl = "$adBaseUrl?payload=$nextPayload"
 
         val query = Query(
@@ -101,6 +102,7 @@ class IncentivesService(
 
         return ConfirmOutcome.Success(
             uuid = uuid.toString(),
+            name = name,
             totalWatches = updated.adWatchCount,
             nextPayload = nextPayload,
             nextUrl = nextUrl,
@@ -108,22 +110,35 @@ class IncentivesService(
         )
     }
 
-    private fun newPayload(uuid: UUID): Pair<String, String>
+    private data class DecodedPayload(
+        val uuid: UUID,
+        val nonce: String,
+        val name: String
+    )
+
+    private fun newPayload(uuid: UUID, name: String): Pair<String, String>
     {
         val nonce = generateNonce()
-        val raw = "$uuid:$nonce"
+        // Name goes LAST in the encoded form so it can contain colons (e.g. Bedrock
+        // names via Geyser) without breaking the split — nonce uses a fixed alphabet
+        // with no colons, so the first two segments are always safe to delimit on.
+        val raw = "$uuid:$nonce:$name"
         val payload = Base64.getUrlEncoder().withoutPadding().encodeToString(raw.toByteArray())
         return payload to sha256(payload)
     }
 
-    private fun decodePayload(payload: String): Pair<UUID, String>?
+    private fun decodePayload(payload: String): DecodedPayload?
     {
         return try
         {
             val decoded = String(Base64.getUrlDecoder().decode(payload))
-            val parts = decoded.split(':', limit = 2)
-            if (parts.size != 2) return null
-            UUID.fromString(parts[0]) to parts[1]
+            val parts = decoded.split(':', limit = 3)
+            if (parts.size != 3) return null
+            DecodedPayload(
+                uuid = UUID.fromString(parts[0]),
+                nonce = parts[1],
+                name = parts[2]
+            )
         }
         catch (e: IllegalArgumentException)
         {

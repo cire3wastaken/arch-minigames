@@ -8,6 +8,7 @@ data class GenerateAdLinkResponse(
 data class AdConfirmResponse(
     val success: Boolean,
     val uuid: String,
+    val name: String,
     val totalWatches: Int,
     val nextPayload: String,
     val nextUrl: String,

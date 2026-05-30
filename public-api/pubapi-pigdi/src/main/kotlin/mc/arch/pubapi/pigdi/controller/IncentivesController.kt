@@ -27,12 +27,13 @@ class IncentivesController(
 )
 {
     // this will run from in-game to generate a url where they can watch ads from
-    @GetMapping("/generate-ad-link/{uuid}")
+    @GetMapping(value = ["/generate-ad-link", "/generate-ad-link/"])
     @Operation(
         summary = "Generate a single-use ad link for a player",
         description = "Returns a URL pointing at the ad landing page that is specific to a player. " +
             "Generating a new link rotates the player's current ad nonce — any previously issued " +
-            "payload is invalidated."
+            "payload is invalidated. The player's name is embedded in the payload and recovered " +
+            "on /ad-confirm so the landing page / consumers can display or log it."
     )
     @ApiResponses(
         value = [
@@ -43,7 +44,7 @@ class IncentivesController(
             ),
             ApiResponse(
                 responseCode = "400",
-                description = "Invalid UUID format",
+                description = "Invalid UUID format, or missing/blank name",
                 content = [Content(schema = Schema(implementation = ErrorResponse::class))]
             ),
             ApiResponse(
@@ -55,10 +56,22 @@ class IncentivesController(
     )
     fun generateAdLink(
         @Parameter(description = "Minecraft UUID of the player who will watch the ad")
-        @PathVariable uuid: UUID
+        @RequestParam uuid: UUID,
+        @Parameter(description = "Minecraft username of the player who will watch the ad")
+        @RequestParam name: String
     ): ResponseEntity<Any>
     {
-        val result = incentivesService.generateAdLink(uuid)
+        if (name.isBlank())
+        {
+            return ResponseEntity.badRequest().body(
+                ErrorResponse(
+                    error = "INVALID_NAME",
+                    message = "name must not be blank"
+                )
+            )
+        }
+
+        val result = incentivesService.generateAdLink(uuid, name)
         return ResponseEntity.ok(
             GenerateAdLinkResponse(url = result.url, payload = result.payload)
         )
@@ -127,6 +140,7 @@ class IncentivesController(
                 AdConfirmResponse(
                     success = true,
                     uuid = outcome.uuid,
+                    name = outcome.name,
                     totalWatches = outcome.totalWatches,
                     nextPayload = outcome.nextPayload,
                     nextUrl = outcome.nextUrl,

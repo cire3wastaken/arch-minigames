@@ -4,6 +4,7 @@ sealed class ConfirmOutcome
 {
     data class Success(
         val uuid: String,
+        val name: String,
         val totalWatches: Int,
         val nextPayload: String,
         val nextUrl: String,
