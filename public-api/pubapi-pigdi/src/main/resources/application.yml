@@ -7,6 +7,10 @@ spring:
     mongodb:
       uri: ${MONGODB_URI:mongodb://archmc-cluster-mongodb.databases.svc.cluster.local:27017/?authSource=admin}
       database: ${MONGODB_DATABASE:Scala}
+      # Spring Data Mongo 3+ disabled this by default. With it off, @Indexed /
+      # @CompoundIndexes annotations are documentation only — Mongo won't actually
+      # create the indexes. We want pigdi to ensure its indexes on startup.
+      auto-index-creation: true
 
     # Redis Configuration
     redis:

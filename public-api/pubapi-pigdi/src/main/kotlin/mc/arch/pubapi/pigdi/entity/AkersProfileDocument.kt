@@ -1,6 +1,8 @@
 package mc.arch.pubapi.pigdi.entity
 
 import org.springframework.data.annotation.Id
+import org.springframework.data.mongodb.core.index.CompoundIndex
+import org.springframework.data.mongodb.core.index.CompoundIndexes
 import org.springframework.data.mongodb.core.mapping.Document
 import java.util.*
 
@@ -12,6 +14,9 @@ import java.util.*
  * @since 12/27/24
  */
 @Document(collection = "AkersProfile")
+@CompoundIndexes(
+    CompoundIndex(name = "apiKeys_token_idx", def = "{'apiKeys.token': 1}")
+)
 data class AkersProfileDocument(
     @Id
     val id: String, // UUID as string
