@@ -237,6 +237,7 @@ fun main(args: Array<String>) = mainBody {
 
     MapDataSync.load()
     KitDataSync.load()
+    KitDataSync.Modern.load()
     KitGroupDataSync.load()
 
     GameManager.load()

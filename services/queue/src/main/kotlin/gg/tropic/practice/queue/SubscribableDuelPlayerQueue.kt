@@ -6,6 +6,7 @@ import gg.tropic.practice.expectation.GameExpectation
 import gg.tropic.practice.games.team.GameTeam
 import gg.tropic.practice.games.team.TeamIdentifier
 import gg.tropic.practice.persistence.RedisShared
+import gg.tropic.practice.provider.MiniProviderVersion
 import gg.tropic.practice.region.Region
 import io.sentry.Breadcrumb
 import io.sentry.Sentry
@@ -20,6 +21,7 @@ class SubscribableDuelPlayerQueue(
     private val kit: ImmutableKit,
     private val teamSize: Int,
     private val queueType: QueueType,
+    private val providerVersion: MiniProviderVersion = MiniProviderVersion.LEGACY,
     override val id: String = queueId {
         kit(kit.id)
         queueType(queueType)
@@ -132,7 +134,7 @@ class SubscribableDuelPlayerQueue(
         val users = listOf(firstPlayers, secondPlayers).flatten()
 
         val map = MapDataSync
-            .selectRandomMapCompatibleWith(kit)
+            .selectRandomMapCompatibleWith(kit, providerVersion)
             ?: return run {
                 RedisShared.sendMessage(
                     users,
@@ -185,7 +187,8 @@ class SubscribableDuelPlayerQueue(
                 map = map,
                 expectation = expectation,
                 // prefer NA servers if queuing globally
-                region = if (region == Region.Both) Region.NA else region
+                region = if (region == Region.Both) Region.NA else region,
+                version = providerVersion
             )
             .exceptionally {
                 Sentry.captureException(it) { scope ->

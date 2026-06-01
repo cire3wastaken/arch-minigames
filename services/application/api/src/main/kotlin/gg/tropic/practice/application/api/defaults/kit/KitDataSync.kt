@@ -26,4 +26,20 @@ object KitDataSync : DataSyncService<ImmutableKitContainer>()
 
     override fun keys() = DPSMapKeys
     override fun type() = ImmutableKitContainer::class.java
+
+    object Modern : DataSyncService<ImmutableKitContainer>()
+    {
+        object DPSMapKeys : DataSyncKeys
+        {
+            override fun newStore() = "mi-practice-kits-modern"
+
+            override fun store() = Key.key(namespace(), "kits-modern")
+            override fun sync() = Key.key(namespaceShortened().suffixWhenDev(), "ksync-modern")
+        }
+
+        override fun locatedIn() = DataSyncSource.Mongo
+
+        override fun keys() = DPSMapKeys
+        override fun type() = ImmutableKitContainer::class.java
+    }
 }
