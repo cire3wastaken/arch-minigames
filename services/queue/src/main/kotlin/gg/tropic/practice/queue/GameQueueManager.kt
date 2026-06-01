@@ -5,6 +5,7 @@ import gg.scala.commons.ScalaCommons
 import gg.scala.commons.agnostic.sync.server.ServerContainer
 import gg.scala.commons.agnostic.sync.server.impl.GameServer
 import gg.scala.commons.agnostic.sync.server.state.ServerState
+import gg.tropic.practice.application.api.defaults.kit.ImmutableKit
 import gg.tropic.practice.application.api.defaults.kit.KitDataSync
 import gg.tropic.practice.application.api.defaults.map.ImmutableMap
 import gg.tropic.practice.application.api.defaults.map.MapDataSync
@@ -69,6 +70,15 @@ object GameQueueManager
 
     private val dpsRedisCache = RedisShared.keyValueCache
     private val queueHolder = CentralSubscribablePlayerQueueHolder()
+
+    private fun lookupKit(kitId: String): Pair<ImmutableKit, MiniProviderVersion>?
+    {
+        KitDataSync.Modern.cached().kits[kitId]
+            ?.let { return it to MiniProviderVersion.MODERN }
+        KitDataSync.cached().kits[kitId]
+            ?.let { return it to MiniProviderVersion.LEGACY }
+        return null
+    }
 
     fun prepareGameFor(
         map: ImmutableMap,
@@ -241,6 +251,10 @@ object GameQueueManager
             buildAndValidateQueueIndexes()
         }
 
+        KitDataSync.Modern.onReload {
+            buildAndValidateQueueIndexes()
+        }
+
         buildAndValidateQueueIndexes()
         dpsRedisCache.sync().del("${namespace().suffixWhenDev()}:duelrequests:*")
 
@@ -339,7 +353,7 @@ object GameQueueManager
                             return@let
                         }
 
-                        val kit = KitDataSync.cached().kits[request.kitID]
+                        val (kit, kitVersion) = lookupKit(request.kitID)
                             ?: return@let run {
                                 RedisShared.sendMessage(
                                     listOf(request.requestee),
@@ -353,7 +367,7 @@ object GameQueueManager
                         val map = if (request.mapID == null)
                         {
                             MapDataSync
-                                .selectRandomMapCompatibleWith(kit)
+                                .selectRandomMapCompatibleWith(kit, kitVersion)
                         } else
                         {
                             MapDataSync.cached().maps[request.mapID]
@@ -379,7 +393,8 @@ object GameQueueManager
                                 mapId = map.name,
                                 configuration = request.configuration
                             ),
-                            region = request.region
+                            region = request.region,
+                            version = kitVersion
                         )
                     }
             }
@@ -390,14 +405,14 @@ object GameQueueManager
                 val kitID = retrieve<String>("kit")
                 val region = Region.valueOf(retrieve<String>("region"))
 
-                val kit = KitDataSync.cached().kits[kitID]
+                val (kit, kitVersion) = lookupKit(kitID)
                     ?: return@listen
 
                 // we need to do the check again, so why not
                 val map = if (mapID == null)
                 {
                     MapDataSync
-                        .selectRandomMapCompatibleWith(kit)
+                        .selectRandomMapCompatibleWith(kit, kitVersion)
                 } else
                 {
                     MapDataSync.cached().maps[mapID]
@@ -406,7 +421,8 @@ object GameQueueManager
                 prepareGameFor(
                     map = map,
                     expectation = config,
-                    region = region
+                    region = region,
+                    version = kitVersion
                 )
             }
 
@@ -419,7 +435,7 @@ object GameQueueManager
                     Serializers.gson.toJson(request)
                 )
 
-                val kit = KitDataSync.cached().kits[request.kitID]!!
+                val kit = lookupKit(request.kitID)?.first!!
                 val map = if (request.mapID != null)
                 {
                     MapDataSync.cached().maps[request.mapID]
@@ -575,70 +591,76 @@ object GameQueueManager
 
     private fun buildAndValidateQueueIndexes()
     {
-        KitDataSync.cached().kits.values
-            .forEach { kit ->
-                val sizeModels = kit
-                    .featureConfig(
-                        FeatureFlag.QueueSizes,
-                        key = "sizes"
-                    )
-                    .split(",")
-                    .map { sizeModel ->
-                        val split = sizeModel.split(":")
-                        split[0].toInt() to (split.getOrNull(1)
-                            ?.split("+")
-                            ?.map(QueueType::valueOf)
-                            ?: listOf(QueueType.Casual))
-                    }
+        fun trackQueuesForKit(kit: ImmutableKit, providerVersion: MiniProviderVersion)
+        {
+            val sizeModels = kit
+                .featureConfig(
+                    FeatureFlag.QueueSizes,
+                    key = "sizes"
+                )
+                .split(",")
+                .map { sizeModel ->
+                    val split = sizeModel.split(":")
+                    split[0].toInt() to (split.getOrNull(1)
+                        ?.split("+")
+                        ?.map(QueueType::valueOf)
+                        ?: listOf(QueueType.Casual))
+                }
 
-                QueueType.entries
-                    .forEach scope@{
-                        for (model in sizeModels)
+            QueueType.entries
+                .forEach scope@{
+                    for (model in sizeModels)
+                    {
+                        val queueId = queueId {
+                            queueType(it)
+                            kit(kit.id)
+                            teamSize(model.first)
+                        }
+
+                        if (
+                            it == QueueType.Ranked &&
+                            (!kit.features(FeatureFlag.Ranked) || QueueType.Ranked !in model.second)
+                        )
                         {
-                            val queueId = queueId {
-                                queueType(it)
-                                kit(kit.id)
-                                teamSize(model.first)
-                            }
+                            // a ranked queue exists for this kit, but the kit no longer supports ranked
+                            queueHolder.forgetPlayerQueue(queueId)
+                            return@scope
+                        }
 
-                            if (
-                                it == QueueType.Ranked &&
-                                (!kit.features(FeatureFlag.Ranked) || QueueType.Ranked !in model.second)
+                        val queue = if (it != QueueType.Robot)
+                        {
+                            SubscribableDuelPlayerQueue(
+                                kit = kit,
+                                queueType = it,
+                                teamSize = model.first,
+                                providerVersion = providerVersion
                             )
-                            {
-                                // a ranked queue exists for this kit, but the kit no longer supports ranked
-                                queueHolder.forgetPlayerQueue(queueId)
-                                return@scope
-                            }
+                        } else
+                        {
+                            SubscribableSoloRobotPlayerQueue(kit, 1)
+                        }
 
-                            val queue = if (it != QueueType.Robot)
-                            {
-                                SubscribableDuelPlayerQueue(
-                                    kit = kit,
-                                    queueType = it,
-                                    teamSize = model.first
-                                )
-                            } else
-                            {
-                                SubscribableSoloRobotPlayerQueue(kit, 1)
-                            }
+                        if (!queueHolder.isHolding(queueId))
+                        {
+                            queueHolder.trackPlayerQueue(queue)
+                        }
 
-                            if (!queueHolder.isHolding(queueId))
+                        if (queue is SubscribableSoloRobotPlayerQueue)
+                        {
+                            val additionalQueue = SubscribableDuoRobotPlayerQueue(kit, 2)
+                            if (!queueHolder.isHolding(additionalQueue.id))
                             {
-                                queueHolder.trackPlayerQueue(queue)
-                            }
-
-                            if (queue is SubscribableSoloRobotPlayerQueue)
-                            {
-                                val additionalQueue = SubscribableDuoRobotPlayerQueue(kit, 2)
-                                if (!queueHolder.isHolding(additionalQueue.id))
-                                {
-                                    queueHolder.trackPlayerQueue(additionalQueue)
-                                }
+                                queueHolder.trackPlayerQueue(additionalQueue)
                             }
                         }
                     }
-            }
+                }
+        }
+
+        KitDataSync.cached().kits.values
+            .forEach { trackQueuesForKit(it, MiniProviderVersion.LEGACY) }
+        KitDataSync.Modern.cached().kits.values
+            .forEach { trackQueuesForKit(it, MiniProviderVersion.MODERN) }
 
         dpsQueueRedis.start()
 
@@ -651,7 +673,7 @@ object GameQueueManager
         )
 
         bedwarsKitIDs.forEach {
-            val bedWarsKit = KitDataSync.cached().kits[it.first]
+            val bedWarsKit = lookupKit(it.first)?.first
             if (bedWarsKit != null)
             {
                 queueHolder.trackPlayerQueue(BedWarsSubscribableMinigamePlayerQueue(bedWarsKit, it.second))
@@ -668,7 +690,7 @@ object GameQueueManager
         )
 
         mappings.forEach {
-            val eventKit = KitDataSync.cached().kits[it.first]
+            val eventKit = lookupKit(it.first)?.first
             if (eventKit != null)
             {
                 queueHolder.trackPlayerQueue(EventsSubscribableMinigamePlayerQueue(eventKit, it.second))
@@ -685,7 +707,7 @@ object GameQueueManager
         )
 
         skywarsKitIDs.forEach {
-            val skyWarsKit = KitDataSync.cached().kits[it.second]
+            val skyWarsKit = lookupKit(it.second)?.first
             if (skyWarsKit != null)
             {
                 queueHolder.trackPlayerQueue(SkyWarsSubscribableMinigamePlayerQueue(skyWarsKit, it.first))
@@ -701,7 +723,7 @@ object GameQueueManager
         )
 
         kitId.forEach { pair ->
-            val miniWallsKit = KitDataSync.cached().kits[pair.second]
+            val miniWallsKit = lookupKit(pair.second)?.first
             if (miniWallsKit != null)
             {
                 println("tracked mini walls queue")
@@ -717,7 +739,7 @@ object GameQueueManager
         )
 
         sgKitId.forEach { pair ->
-            val sgKit = KitDataSync.cached().kits[pair.second]
+            val sgKit = lookupKit(pair.second)?.first
             if (sgKit != null)
             {
                 println("tracked SG queue")
@@ -734,7 +756,7 @@ object GameQueueManager
         )
 
         pofKitId.forEach { pair ->
-            val pofKit = KitDataSync.cached().kits[pair.second]
+            val pofKit = lookupKit(pair.second)?.first
             if (pofKit != null)
             {
                 println("tracked pof queue (${pair.first})")
@@ -750,7 +772,7 @@ object GameQueueManager
             val kitId = queue.toQueueIDComponents()?.kitID
                 ?: return@forEach
 
-            if (KitDataSync.cached().kits[kitId] == null)
+            if (lookupKit(kitId) == null)
             {
                 queueHolder.forgetPlayerQueue(key)
             }
