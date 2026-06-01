@@ -73,10 +73,16 @@ object GameQueueManager
 
     private fun lookupKit(kitId: String): Pair<ImmutableKit, MiniProviderVersion>?
     {
-        KitDataSync.Modern.cached().kits[kitId]
-            ?.let { return it to MiniProviderVersion.MODERN }
+        // scan for legacy gamemodes first, beacuse in order to allow
+        // a cross-play system on modern duels we rely on the fact that
+        // 1.21 clients can join legacy games. If there is no legacy implementation
+        // for the kit, then we select modern
         KitDataSync.cached().kits[kitId]
             ?.let { return it to MiniProviderVersion.LEGACY }
+
+        KitDataSync.Modern.cached().kits[kitId]
+            ?.let { return it to MiniProviderVersion.MODERN }
+
         return null
     }
 
