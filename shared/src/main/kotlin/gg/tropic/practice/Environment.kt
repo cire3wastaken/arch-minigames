@@ -2,6 +2,7 @@ package gg.tropic.practice
 
 import gg.scala.commons.agnostic.sync.ServerSync
 import gg.scala.commons.playerstatus.PlayerStatusTrackerService
+import gg.scala.lemon.util.QuickAccess
 import gg.scala.lemon.util.QuickAccess.username
 import net.evilblock.cubed.util.CC
 import net.evilblock.cubed.util.ServerVersion
@@ -40,6 +41,9 @@ fun isModernKitFormat() = ServerVersion.getVersion().isNewerThanOrEquals(ServerV
 fun UUID.toDisplayName() = PlayerStatusTrackerService.loadStatusOf(this)
     .join()
     ?.prefixedName
+    ?: "${CC.GRAY}${username()}"
+
+fun UUID.toDisplayNameRaw() = QuickAccess.computePrefixedName(this).join()
     ?: "${CC.GRAY}${username()}"
 
 @Throws(IllegalStateException::class)

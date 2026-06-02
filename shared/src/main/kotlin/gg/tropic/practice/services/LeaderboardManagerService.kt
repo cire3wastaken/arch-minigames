@@ -12,6 +12,7 @@ import gg.tropic.practice.leaderboards.StatisticLeaderboard
 import gg.tropic.practice.profile.PracticeProfileService
 import gg.tropic.practice.statistics.StatisticService
 import gg.tropic.practice.toDisplayName
+import gg.tropic.practice.toDisplayNameRaw
 import me.lucko.helper.Schedulers
 import net.evilblock.cubed.util.CC
 import net.evilblock.cubed.util.math.Numbers
@@ -65,7 +66,7 @@ object LeaderboardManagerService
             .join()
 
         "${CC.PRI}#${index + 1}. ${CC.WHITE}${
-            entry.uniqueId.toDisplayName()
+            entry.uniqueId.toDisplayNameRaw()
         }${
             if (guildName != null) " ${CC.GRAY}[$guildName${CC.GRAY}]${CC.RESET}" else ""
         } ${CC.GRAY}- ${CC.WHITE}${
