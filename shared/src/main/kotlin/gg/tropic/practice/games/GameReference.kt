@@ -24,5 +24,6 @@ data class GameReference(
     val majorityAllowsSpectators: Boolean,
     val queueId: String? = null,
     val metadata: MatchmakingMetadata? = null,
-    val miniGameType: String? = null
+    val miniGameType: String? = null,
+    val isPrivateGame: Boolean = false
 )

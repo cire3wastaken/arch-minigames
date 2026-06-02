@@ -86,7 +86,8 @@ object StatusServiceSubscriptionService
                             majorityAllowsSpectators = players.isEmpty() ||
                                 (majoritySpectatorsEnabled / players.size) >= 0.50,
                             metadata = it.expectationModel.matchmakingMetadataAPIV2,
-                            miniGameType = it.flagMetaData(FeatureFlag.MiniGameType, "id")
+                            miniGameType = it.flagMetaData(FeatureFlag.MiniGameType, "id"),
+                            isPrivateGame = it.expectationModel.isPrivateGame
                         )
                     }
                     .toList()
