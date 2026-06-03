@@ -37,6 +37,9 @@ include(
     "arcadegames:arcade",
     "arcadegames:arcade-lobby",
 
+    "arcadegames:skywars",
+    "arcadegames:skywars-shared",
+
     "arcadegames:miniwalls",
     "arcadegames:miniwalls-shared",
 
