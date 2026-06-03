@@ -6,12 +6,12 @@ dependencies {
 
     api("lol.arch.symphony:api:1.1.1")
 
-    compileOnly(project(":minigames:miniwalls-shared"))
-    compileOnly(project(":minigames:skywars-shared"))
+    compileOnly(project(":arcadegames:miniwalls-shared"))
+    compileOnly(project(":arcadegames:skywars-shared"))
     compileOnly(project(":minigames:bedwars-shared"))
     compileOnly(project(":minigames:pof-shared"))
-    compileOnly(project(":microgames:events-api"))
-    implementation(project(":minigames:hunger-games-shared"))
+    compileOnly(project(":arcadegames:arcade-api"))
+    implementation(project(":arcadegames:hunger-games-shared"))
 
     implementation("net.md-5:bungeecord-chat:1.20-R0.1")
 
