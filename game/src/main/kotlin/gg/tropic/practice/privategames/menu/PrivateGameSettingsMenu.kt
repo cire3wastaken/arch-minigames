@@ -3,6 +3,8 @@ package gg.tropic.practice.privategames.menu
 import com.cryptomorin.xseries.XMaterial
 import gg.tropic.practice.games.GameImpl
 import gg.tropic.practice.games.GameState
+import gg.tropic.practice.games.event.GameStartEvent
+import gg.tropic.practice.minigame.AbstractMiniGameGameImpl
 import gg.tropic.practice.privategames.settings.PrivateGameSetting
 import gg.tropic.practice.privategames.settings.PrivateGameSettingsRegistry
 import gg.tropic.practice.privategames.settings.impl.BooleanSetting
@@ -12,6 +14,7 @@ import net.evilblock.cubed.menu.Button
 import net.evilblock.cubed.menu.pagination.PaginatedMenu
 import net.evilblock.cubed.util.CC
 import net.evilblock.cubed.util.bukkit.ItemBuilder
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.ClickType
@@ -68,6 +71,65 @@ class PrivateGameSettingsMenu(
     }
 
     override fun getMaxItemsPerPage(player: Player) = 21
+
+    override fun getGlobalButtons(player: Player): Map<Int, Button>
+    {
+        return mutableMapOf<Int, Button>().apply {
+            this[4] = ItemBuilder
+                .of(XMaterial.EMERALD)
+                .name("${CC.GREEN}Force Start ${CC.GRAY}(Click)")
+                .addToLore(
+                    "${CC.GRAY}Start the game immediately.",
+                    "${CC.GRAY}Requires at least ${CC.WHITE}2${CC.GRAY} players."
+                )
+                .toButton { clicker, _ -> clicker?.let(::forceStart) }
+        }
+    }
+
+    private fun forceStart(player: Player)
+    {
+        if (!(game.state == GameState.Waiting || game.state == GameState.Starting))
+        {
+            player.sendMessage("${CC.RED}You can only force start before the game starts!")
+            return
+        }
+
+        if (game.expectationModel.players.firstOrNull() != player.uniqueId)
+        {
+            player.sendMessage("${CC.RED}Only the party leader can force start the game!")
+            return
+        }
+
+        val miniGame = game as? AbstractMiniGameGameImpl<*>
+            ?: return run {
+                player.sendMessage("${CC.RED}This game cannot be force started!")
+            }
+
+        if (miniGame.expectationModel.players.size < 2)
+        {
+            player.sendMessage("${CC.RED}You need at least 2 players to force start the game!")
+            return
+        }
+
+        miniGame.fastTracked = true
+        miniGame.startCountDown = 0
+
+        val startEvent = GameStartEvent(miniGame)
+        Bukkit.getPluginManager().callEvent(startEvent)
+
+        if (startEvent.isCancelled)
+        {
+            miniGame.state = GameState.Completed
+            miniGame.closeAndCleanup()
+            player.sendMessage("${CC.RED}Failed to force start the game!")
+            return
+        }
+
+        miniGame.state = GameState.Playing
+        miniGame.startTimestamp = System.currentTimeMillis()
+        miniGame.sendMessage("${CC.GREEN}${player.name} force started the game!")
+        player.closeInventory()
+    }
 
     override fun onClose(player: Player, manualClose: Boolean)
     {

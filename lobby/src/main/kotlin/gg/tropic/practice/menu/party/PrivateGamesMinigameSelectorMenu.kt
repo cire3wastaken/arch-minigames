@@ -39,8 +39,7 @@ class PrivateGamesMinigameSelectorMenu : Menu("Private Games - Select Mode")
         val minigameTypes = listOf(
             MinigameTypeInfo("bedwars", "BedWars", XMaterial.RED_BED, "bwlobby"),
             MinigameTypeInfo("skywars", "SkyWars", XMaterial.FEATHER, "swlobby"),
-            MinigameTypeInfo("miniwalls", "Mini Walls", XMaterial.IRON_SWORD, "mwlobby"),
-            MinigameTypeInfo("events", "Events", XMaterial.GOLDEN_APPLE, "eventhall")
+            MinigameTypeInfo("arcade", "Arcade", XMaterial.GOLDEN_APPLE, "arcadelobby")
         )
 
         minigameTypes.forEachIndexed { index, info ->
