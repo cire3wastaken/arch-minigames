@@ -12,7 +12,7 @@ configurations.all {
 
 dependencies {
     api(project(":shared"))
-    api(project(":minigames:skywars-shared"))
+    api(project(":arcadegames:skywars-shared"))
 
     api(project(":versioned:generics"))
     api(project(":versioned:legacy"))

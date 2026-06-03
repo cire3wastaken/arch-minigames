@@ -63,6 +63,18 @@ class MapEditor(private val player: Player, private val slime: SlimeProvider) : 
             }
             return false
         }
+
+        private fun isWorldInUseException(throwable: Throwable): Boolean
+        {
+            var cursor: Throwable? = throwable
+            while (cursor != null)
+            {
+                val name = cursor.javaClass.simpleName
+                if (name == "WorldInUseException" || name == "WorldLockedException") return true
+                cursor = cursor.cause
+            }
+            return false
+        }
     }
 
     private val editorID = "editor-${player.uniqueId}"
@@ -310,6 +322,15 @@ class MapEditor(private val player: Player, private val slime: SlimeProvider) : 
             {
                 player.sendMessage(
                     "${CC.RED}Template ${CC.WHITE}$template${CC.RED} was saved in a newer slime format than this fleet supports. Edit it on modern devtools instead."
+                )
+                XSound.BLOCK_NOTE_BLOCK_PLING.play(player, 1.0f, 0.2f)
+                return
+            }
+
+            if (isWorldInUseException(ex))
+            {
+                player.sendMessage(
+                    "${CC.RED}Template ${CC.WHITE}$template${CC.RED} is currently in use — it's loaded on a live server, or a previous edit left a stale lock. Wait a moment and try again."
                 )
                 XSound.BLOCK_NOTE_BLOCK_PLING.play(player, 1.0f, 0.2f)
                 return
