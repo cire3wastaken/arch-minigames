@@ -101,7 +101,9 @@ class GameStartTask(
                     }
                 }
 
-            val teamVersus = this.game.teams
+            val teamVersus = if (game.isFreeForAll)
+                "FFA (${game.teams.first().players.size})"
+            else this.game.teams
                 .reversed()
                 .map { it.players.size }
                 .joinToString("v")
@@ -115,9 +117,16 @@ class GameStartTask(
                 else -> "Private"
             }
 
-            val components = mutableListOf(
-                "",
-                "${CC.PRI}$gameType $teamVersus ${game.kit.displayName}:",
+            val playersLine = if (game.isFreeForAll)
+            {
+                "${CC.PRI}${Constants.THIN_VERTICAL_LINE}${CC.GRAY} Players: ${CC.WHITE}${
+                    this.game.teams.first().players
+                        .joinToString(", ") {
+                            game.usernameOf(it)
+                        }
+                }"
+            } else
+            {
                 "${CC.PRI}${Constants.THIN_VERTICAL_LINE}${CC.GRAY} Players: ${CC.WHITE}${
                     this.game.teams.first().players
                         .joinToString(", ") {
@@ -138,6 +147,12 @@ class GameStartTask(
                             }
                     }
                 }"
+            }
+
+            val components = mutableListOf(
+                "",
+                "${CC.PRI}$gameType $teamVersus ${game.kit.displayName}:",
+                playersLine
             )
 
             if (game.expectationModel.queueType == QueueType.Ranked)
