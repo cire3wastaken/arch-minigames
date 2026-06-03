@@ -116,8 +116,7 @@ object ArcadeBroadcastTrigger
 
         ArcadeBroadcast.publish(
             broadcasterName = broadcasterName,
-            gameDisplay = gameDisplay,
-            queueId = queueId
+            gameDisplay = gameDisplay
         )
 
         player.sendMessage("${CC.GREEN}Broadcasted your ${gameDisplay} queue!")

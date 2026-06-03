@@ -2,10 +2,8 @@ package mc.arch.minigames.arcade.lobby.broadcast
 
 import gg.scala.flavor.service.Configure
 import gg.scala.flavor.service.Service
-import mc.arch.minigames.arcade.broadcast.ArcadeBroadcast
 import mc.arch.minigames.arcade.broadcast.ArcadeBroadcastPolicy
 import mc.arch.minigames.arcade.lobby.menu.ArcadeCatalog
-import me.lucko.helper.utils.Players
 
 @Service
 object ArcadeBroadcastService
@@ -19,9 +17,7 @@ object ArcadeBroadcastService
                 .toMap()
         )
 
-        ArcadeBroadcast.listen { broadcaster, game, queueId ->
-            val message = ArcadeBroadcast.render(broadcaster, game, queueId)
-            Players.all().forEach(message::sendToPlayer)
-        }
+        // Queue broadcasts are delivered network-wide by Lemon (see ArcadeBroadcast.publish),
+        // so no local listener is needed here anymore.
     }
 }
