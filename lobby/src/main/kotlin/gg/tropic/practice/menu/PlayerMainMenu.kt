@@ -59,17 +59,17 @@ class PlayerMainMenu : Menu("Navigator")
             },
         15 to ItemBuilder
             .of(Material.LEASH)
-            .name("${CC.D_PURPLE}Events")
+            .name("${CC.D_PURPLE}Arcade")
             .addToLore(
-                "${CC.GRAY}Host or join an event!",
+                "${CC.GRAY}Jump into the Arcade!",
                 "",
-                "${CC.GRAY}Events include:",
-                "${CC.WHITE}- Sumo",
+                "${CC.GRAY}Games include:",
+                "${CC.WHITE}- Sumo, OITC, Red Light Green Light",
                 "",
-                "${CC.GREEN}Click to open!"
+                "${CC.GREEN}Click to play!"
             )
             .toButton { _, _ ->
-                player.performCommand("events")
+                player.performCommand("joinqueue arcadelobby")
             },
         17 to ItemBuilder
             .of(Material.LADDER)
