@@ -4,20 +4,19 @@ import gg.tropic.practice.application.api.defaults.kit.ImmutableKit
 import gg.tropic.practice.games.GameState
 import gg.tropic.practice.games.manager.GameManager
 import gg.tropic.practice.persistence.RedisShared
-import gg.tropic.practice.provider.MiniProviderVersion
 import gg.tropic.practice.queue.AbstractSubscribableMinigamePlayerQueue
 import gg.tropic.practice.queue.QueueEntry
 import gg.tropic.practice.queue.QueueType
-import mc.arch.minigames.microgames.events.EventType
-import mc.arch.minigames.microgames.events.EventsMiniGameConfiguration
+import mc.arch.minigames.arcade.ArcadeMiniGameConfiguration
+import mc.arch.minigames.arcade.ArcadeMode
 
 /**
  * @author Subham
  * @since 6/15/25
  */
-class EventsSubscribableMinigamePlayerQueue(
+class ArcadeSubscribableMinigamePlayerQueue(
     kit: ImmutableKit,
-    private val type: EventType
+    private val type: ArcadeMode
 ) : AbstractSubscribableMinigamePlayerQueue(
     miniGameMode = type,
     kit = kit,
@@ -29,7 +28,7 @@ class EventsSubscribableMinigamePlayerQueue(
     override val createsFallbackGameOnJoinFailure: Boolean = false
 
     override fun constructConfigurationForInitiatorEntry(entry: QueueEntry) =
-        EventsMiniGameConfiguration(eventType = type, hostedBy = entry.leader)
+        ArcadeMiniGameConfiguration(mode = type)
 
     @Volatile
     private var lastCreationInitiatedAt = 0L
@@ -39,38 +38,44 @@ class EventsSubscribableMinigamePlayerQueue(
         val targetEntry = playersInQueue().firstOrNull()?.data
             ?: return emptyList()
 
-        val existing = GameManager.allGames().firstOrNull { it.queueId == id }
+        // A Completed game lingers in GameManager's listing until its server finishes
+        // closeAndCleanup(). It must NOT count as the singleton instance — otherwise a
+        // game that failed to start (e.g. not enough players during the countdown, which
+        // flips it straight to Completed) would block every future join for this queueId.
+        val existing = GameManager.allGames().firstOrNull {
+            it.queueId == id && it.state != GameState.Completed
+        }
         if (existing != null)
         {
             if (existing.state != GameState.Waiting && existing.state != GameState.Starting)
             {
                 RedisShared.sendMessage(
                     targetEntry.players,
-                    listOf("&cThis event is already in progress and cannot be joined right now.")
+                    listOf("&cThis game is already in progress and cannot be joined right now.")
                 )
                 return listOf(targetEntry)
             }
 
-            // Singleton invariant: a joinable event already exists. Don't let the
+            // Singleton invariant: a joinable game already exists. Don't let the
             // base class spawn a parallel one just because the host's instance has
             // been flagged failing — make the player wait instead.
             if (existing.server in AbstractSubscribableMinigamePlayerQueue.getFailingInstances())
             {
                 RedisShared.sendMessage(
                     targetEntry.players,
-                    listOf("&cThe ${type.name.lowercase()} event is unavailable. Please try again later.")
+                    listOf("&cThe ${type.name.lowercase()} game is unavailable. Please try again later.")
                 )
                 return listOf(targetEntry)
             }
 
-            // Singleton invariant: when the event is at capacity, base.onProcess()
+            // Singleton invariant: when the game is at capacity, base.onProcess()
             // would filter the existing game out (it can't fit the joiner) and fall
-            // through to spawning a parallel event. Reject instead.
+            // through to spawning a parallel game. Reject instead.
             if (existing.players.size + targetEntry.players.size > type.maxPlayers())
             {
                 RedisShared.sendMessage(
                     targetEntry.players,
-                    listOf("&cThis ${type.name.lowercase()} event is full.")
+                    listOf("&cThis ${type.name.lowercase()} game is full.")
                 )
                 return listOf(targetEntry)
             }
@@ -78,14 +83,14 @@ class EventsSubscribableMinigamePlayerQueue(
             return super.onProcess()
         }
 
-        // No existing event yet. The just-created game can take several seconds to
+        // No existing game yet. The just-created game can take several seconds to
         // show up in GameManager's cache; gate the create-new path so a second
-        // joiner during that window doesn't spawn a parallel event.
+        // joiner during that window doesn't spawn a parallel game.
         if (System.currentTimeMillis() - lastCreationInitiatedAt < CREATION_GUARD_MS)
         {
             RedisShared.sendMessage(
                 targetEntry.players,
-                listOf("&cA ${type.name.lowercase()} event is already being created. Please try again in a moment.")
+                listOf("&cA ${type.name.lowercase()} game is already being created. Please try again in a moment.")
             )
             return listOf(targetEntry)
         }

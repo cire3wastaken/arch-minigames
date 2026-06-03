@@ -28,7 +28,7 @@ import gg.tropic.practice.persistence.RedisShared
 import gg.tropic.practice.provider.MiniProviderType
 import gg.tropic.practice.provider.MiniProviderVersion
 import gg.tropic.practice.queue.variants.BedWarsSubscribableMinigamePlayerQueue
-import gg.tropic.practice.queue.variants.EventsSubscribableMinigamePlayerQueue
+import gg.tropic.practice.queue.variants.ArcadeSubscribableMinigamePlayerQueue
 import gg.tropic.practice.queue.variants.HungerGamesSubscribableMinigamePlayerQueue
 import gg.tropic.practice.queue.variants.MiniWallsSubscribableMinigamePlayerQueue
 import gg.tropic.practice.queue.variants.PofSubscribableMinigamePlayerQueue
@@ -48,7 +48,7 @@ import mc.arch.minigame.bedwars.neo.BedWarsMode
 import mc.arch.minigame.miniwalls.MiniWallsMode
 import mc.arch.minigame.pof.PofMode
 import mc.arch.minigames.hungergames.HungerGamesMode
-import mc.arch.minigames.microgames.events.EventType
+import mc.arch.minigames.arcade.ArcadeMode
 import mc.arch.minigames.skywars.SkyWarsMode
 import net.evilblock.cubed.serializers.Serializers
 import net.md_5.bungee.api.chat.ClickEvent
@@ -690,16 +690,16 @@ object GameQueueManager
         }
 
         val mappings = listOf(
-            "sumoevent" to EventType.SUMO,
-            "oitcevent" to EventType.OITC,
-            "rlglevent" to EventType.RED_LIGHT_GREEN_LIGHT
+            "sumo_arcade" to ArcadeMode.SUMO,
+            "oitc_arcade" to ArcadeMode.OITC,
+            "rlgl_arcade" to ArcadeMode.RED_LIGHT_GREEN_LIGHT
         )
 
         mappings.forEach {
-            val eventKit = lookupKit(it.first)?.first
-            if (eventKit != null)
+            val arcadeKit = lookupKit(it.first)?.first
+            if (arcadeKit != null)
             {
-                queueHolder.trackPlayerQueue(EventsSubscribableMinigamePlayerQueue(eventKit, it.second))
+                queueHolder.trackPlayerQueue(ArcadeSubscribableMinigamePlayerQueue(arcadeKit, it.second))
             } else
             {
                 queueHolder.forgetPlayerQueue(it.first)
@@ -707,9 +707,7 @@ object GameQueueManager
         }
 
         val skywarsKitIDs = listOf(
-            SkyWarsMode.MINI to "sw_mini",
-            SkyWarsMode.MINI_MODERN to "modern_sw_mini",
-            SkyWarsMode.RANKED to "sw_mini"
+            SkyWarsMode.MINI to "sw_mini"
         )
 
         skywarsKitIDs.forEach {
