@@ -35,8 +35,8 @@ fun String.suffixWhenDev() = (if (isDev()) "${if (this == "tropicpractice")
 
 fun isMiniGameServer() = "mipgame" in ServerSync.local.groups
 fun isModernDuelsServer() = "duelsmodernlobby" in ServerSync.local.groups
-fun isModernKitFormat() = ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v1_20) &&
-    (isModernDuelsServer() || isMiniGameServer())
+
+fun isModernKitFormat() = ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v1_20)
 
 fun UUID.toDisplayName() = PlayerStatusTrackerService.loadStatusOf(this)
     .join()

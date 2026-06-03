@@ -5,7 +5,7 @@ import gg.scala.basics.plugin.settings.defaults.values.StateSettingValue
 import gg.scala.commons.playerstatus.isVirtuallyInvisibleToSomeExtent
 import gg.scala.staff.ScalaStaffPlugin
 import gg.tropic.practice.configuration.PracticeConfigurationService
-import gg.tropic.practice.kit.KitService
+import gg.tropic.practice.kit.findKitAcrossStores
 import gg.tropic.practice.minigame.menu.MinigameMapSelectorMenu
 import gg.tropic.practice.player.LobbyPlayerService
 import gg.tropic.practice.player.PlayerState
@@ -73,7 +73,7 @@ fun joinMinigameQueue(
     }
 
     val parsedQueueId = QueueIDParser.parseDetailed(queueId)
-    val kit = KitService.cached().kits[parsedQueueId.kitID]
+    val kit = findKitAcrossStores(parsedQueueId.kitID)
         ?: return run {
             player.sendMessage("${CC.RED}This mode is unavailable!")
         }
