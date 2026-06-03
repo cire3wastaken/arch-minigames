@@ -1,11 +1,13 @@
 package mc.arch.minigames.arcade.lobby.menu
 
 import com.cryptomorin.xseries.XMaterial
+import gg.tropic.practice.metadata.SystemMetadataService
 import gg.tropic.practice.minigame.joinMinigameQueue
 import net.evilblock.cubed.menu.Button
 import net.evilblock.cubed.menu.Menu
 import net.evilblock.cubed.util.CC
 import net.evilblock.cubed.util.bukkit.ItemBuilder
+import net.evilblock.cubed.util.math.Numbers
 import org.bukkit.entity.Player
 
 class ArcadeGameMenu(
@@ -59,10 +61,16 @@ class ArcadeGameMenu(
         .apply { mode.lore.forEach { addToLore("${CC.GRAY}$it") } }
         .addToLore(
             "",
-            "${CC.LIGHT_PURPLE}Click to play!"
+            "${CC.LIGHT_PURPLE}Click to play!",
+            "${CC.GRAY}${Numbers.format(currentlyPlaying(mode))} currently playing",
         )
         .toButton { _, _ ->
             Button.playNeutral(player)
             queue(player, card.cardName, mode)
         }
+
+    private fun currentlyPlaying(mode: ArcadeCardMode): Int = SystemMetadataService
+        .allGames()
+        .filter { it.queueId == mode.queueId }
+        .sumOf { it.onlinePlayers ?: 0 }
 }

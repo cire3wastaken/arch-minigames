@@ -42,6 +42,19 @@ fun String.toTemplatePlayerCounts() = template { key, data ->
             )
         }
 
+        "arcade" ->
+        {
+            val arcadeTypes = setOf("arcade", "skywars", "miniwalls", "hungergames", "pof")
+            Numbers.format(
+                ServerContainer
+                    .getServersInGroupCasted<GameServer>(data)
+                    .sumOf { it.getPlayersCount() ?: 0 } +
+                    SystemMetadataService.allGames()
+                        .filter { it.miniGameType in arcadeTypes }
+                        .sumOf { it.onlinePlayers ?: 0 }
+            )
+        }
+
         "hwi" ->
         {
             Numbers.format(
