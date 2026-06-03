@@ -37,9 +37,9 @@ class MinigamePlayNPCEntity(
     lines = when
     {
         isAutoJoin -> autoJoinHeader()
-        modeMetadatas.size > 1 -> groupHeader(configuration, modeMetadatas)
-        modeMetadatas.size == 1 -> modeMetadatas.first().toNPCHeader()
-        else -> nonExistentHeader()
+        modeMetadatas.isEmpty() -> nonExistentHeader()
+        useGroupDisplay(configuration, modeMetadatas) -> groupHeader(configuration, modeMetadatas)
+        else -> modeMetadatas.first().toNPCHeader()
     },
     location = configuration.position.toLocation(
         Bukkit.getWorlds().first()
@@ -49,12 +49,15 @@ class MinigamePlayNPCEntity(
     val modeMetadata: MiniGameModeMetadata? = modeMetadatas.firstOrNull()
     val isMultiMode: Boolean = modeMetadatas.size > 1
 
+    val useGroupDisplay: Boolean
+        get() = useGroupDisplay(configuration, modeMetadatas)
+
     init
     {
         persistent = false
     }
 
-    fun currentHeader() = if (isMultiMode)
+    fun currentHeader() = if (useGroupDisplay)
     {
         groupHeader(configuration, modeMetadatas)
     } else
@@ -103,6 +106,11 @@ class MinigamePlayNPCEntity(
 
     companion object
     {
+        fun useGroupDisplay(
+            configuration: MinigamePlayNPC,
+            modes: List<MiniGameModeMetadata>
+        ) = modes.size > 1 || (modes.size == 1 && configuration.displayName.isNotBlank())
+
         fun nonExistentHeader() = listOf(
             "${CC.B_YELLOW}CLICK TO PLAY",
             "${CC.RED}???",
