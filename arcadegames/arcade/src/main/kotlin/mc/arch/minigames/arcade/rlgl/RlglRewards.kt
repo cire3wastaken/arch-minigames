@@ -69,7 +69,8 @@ object RlglRewards
                 3 -> "3rd place"
                 else -> "Finishing a game"
             }
-            resources.toPlayer()?.sendMessage("${CC.D_PURPLE}+$amount Arcade Coins ${CC.L_PURPLE}+$xpAmount Arcade Experience ${CC.GRAY}($label)")
+            resources.toPlayer()?.sendMessage("${CC.D_PURPLE}+$amount Arcade Coins ${CC.GRAY}($label)")
+            resources.toPlayer()?.sendMessage("${CC.L_PURPLE}+$xpAmount Arcade Experience ${CC.GRAY}($label)")
         }
     }
 
@@ -83,7 +84,9 @@ object RlglRewards
                 }
                 deposit(resources.player, RlglConstants.PARTICIPATION_COIN_REWARD, RlglConstants.PARTICIPATION_XP_REWARD)
                 resources.toPlayer()
-                    ?.sendMessage("${CC.D_PURPLE}+${RlglConstants.PARTICIPATION_COIN_REWARD} Arcade Coins ${CC.L_PURPLE}+${RlglConstants.PARTICIPATION_XP_REWARD} Arcade Experience ${CC.GRAY}(Participating in a game)")
+                    ?.sendMessage("${CC.D_PURPLE}+${RlglConstants.PARTICIPATION_COIN_REWARD} Arcade Coins ${CC.GRAY}(Participating in a game)")
+                resources.toPlayer()
+                    ?.sendMessage("${CC.L_PURPLE}+${RlglConstants.PARTICIPATION_XP_REWARD} Arcade Experience ${CC.GRAY}(Participating in a game)")
             }
     }
 

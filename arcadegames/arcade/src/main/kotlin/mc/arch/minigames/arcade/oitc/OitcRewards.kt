@@ -40,7 +40,8 @@ object OitcRewards
         }
 
         deposit(winner.player, OitcConstants.WINNER_COIN_REWARD, OitcConstants.WINNER_XP_REWARD)
-        winner.toPlayer()?.sendMessage("${CC.D_PURPLE}+${OitcConstants.WINNER_COIN_REWARD} Arcade Coins ${CC.L_PURPLE}+${OitcConstants.WINNER_XP_REWARD} Arcade Experience ${CC.GRAY}(Winning a game)")
+        winner.toPlayer()?.sendMessage("${CC.D_PURPLE}+${OitcConstants.WINNER_COIN_REWARD} Arcade Coins ${CC.GRAY}(Winning a game)")
+        winner.toPlayer()?.sendMessage("${CC.L_PURPLE}+${OitcConstants.WINNER_XP_REWARD} Arcade Experience ${CC.GRAY}(Winning a game)")
     }
 
     fun awardParticipants(participants: Collection<OitcPlayerResources>, winnerId: UUID)
@@ -56,7 +57,9 @@ object OitcRewards
 
                 deposit(resources.player, OitcConstants.PARTICIPATION_COIN_REWARD, OitcConstants.PARTICIPATION_XP_REWARD)
                 resources.toPlayer()
-                    ?.sendMessage("${CC.D_PURPLE}+${OitcConstants.PARTICIPATION_COIN_REWARD} Arcade Coins ${CC.L_PURPLE}+${OitcConstants.PARTICIPATION_XP_REWARD} Arcade Experience ${CC.GRAY}(Participating in a game)")
+                    ?.sendMessage("${CC.D_PURPLE}+${OitcConstants.PARTICIPATION_COIN_REWARD} Arcade Coins ${CC.GRAY}(Participating in a game)")
+                resources.toPlayer()
+                    ?.sendMessage("${CC.L_PURPLE}+${OitcConstants.PARTICIPATION_XP_REWARD} Arcade Experience ${CC.GRAY}(Participating in a game)")
             }
     }
 

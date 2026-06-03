@@ -24,7 +24,8 @@ object PofRewards
         winners.forEach { winner ->
             recordParticipation(winner, mode, win = true)
             deposit(winner.player, WINNER_COIN_REWARD, WINNER_XP_REWARD)
-            winner.toPlayer()?.sendMessage("${CC.D_PURPLE}+$WINNER_COIN_REWARD Arcade Coins ${CC.L_PURPLE}+$WINNER_XP_REWARD Arcade Experience ${CC.GRAY}(Winning a game)")
+            winner.toPlayer()?.sendMessage("${CC.D_PURPLE}+$WINNER_COIN_REWARD Arcade Coins ${CC.GRAY}(Winning a game)")
+            winner.toPlayer()?.sendMessage("${CC.L_PURPLE}+$WINNER_XP_REWARD Arcade Experience ${CC.GRAY}(Winning a game)")
         }
     }
 
@@ -39,7 +40,8 @@ object PofRewards
             .forEach { resources ->
                 recordParticipation(resources, mode, win = false)
                 deposit(resources.player, PARTICIPATION_COIN_REWARD, PARTICIPATION_XP_REWARD)
-                resources.toPlayer()?.sendMessage("${CC.D_PURPLE}+$PARTICIPATION_COIN_REWARD Arcade Coins ${CC.L_PURPLE}+$PARTICIPATION_XP_REWARD Arcade Experience ${CC.GRAY}(Participating in a game)")
+                resources.toPlayer()?.sendMessage("${CC.D_PURPLE}+$PARTICIPATION_COIN_REWARD Arcade Coins ${CC.GRAY}(Participating in a game)")
+                resources.toPlayer()?.sendMessage("${CC.L_PURPLE}+$PARTICIPATION_XP_REWARD Arcade Experience ${CC.GRAY}(Participating in a game)")
             }
     }
 

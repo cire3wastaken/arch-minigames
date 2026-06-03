@@ -23,7 +23,8 @@ object SumoRewards
         }
 
         deposit(eliminated.uniqueId, SumoConstants.PARTICIPATION_COIN_REWARD, SumoConstants.PARTICIPATION_XP_REWARD)
-        eliminated.sendMessage("${CC.D_PURPLE}+${SumoConstants.PARTICIPATION_COIN_REWARD} Arcade Coins ${CC.L_PURPLE}+${SumoConstants.PARTICIPATION_XP_REWARD} Arcade Experience ${CC.GRAY}(Participating in a game)")
+        eliminated.sendMessage("${CC.D_PURPLE}+${SumoConstants.PARTICIPATION_COIN_REWARD} Arcade Coins ${CC.GRAY}(Participating in a game)")
+        eliminated.sendMessage("${CC.L_PURPLE}+${SumoConstants.PARTICIPATION_XP_REWARD} Arcade Experience ${CC.GRAY}(Participating in a game)")
     }
 
     fun awardKnockoff(winner: SumoPlayerResources)
@@ -53,7 +54,8 @@ object SumoRewards
         }
 
         deposit(winner.player, SumoConstants.WINNER_COIN_REWARD, SumoConstants.WINNER_XP_REWARD)
-        winner.toPlayer()?.sendMessage("${CC.D_PURPLE}+${SumoConstants.WINNER_COIN_REWARD} Arcade Coins ${CC.L_PURPLE}+${SumoConstants.WINNER_XP_REWARD} Arcade Experience ${CC.GRAY}(Winning a game)")
+        winner.toPlayer()?.sendMessage("${CC.D_PURPLE}+${SumoConstants.WINNER_COIN_REWARD} Arcade Coins ${CC.GRAY}(Winning a game)")
+        winner.toPlayer()?.sendMessage("${CC.L_PURPLE}+${SumoConstants.WINNER_XP_REWARD} Arcade Experience ${CC.GRAY}(Winning a game)")
     }
 
     private fun deposit(receiver: UUID, coins: Long, experience: Long)
