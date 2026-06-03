@@ -95,7 +95,7 @@ class MainHungerGamesKitMenu : Menu("Kit Shop")
                             addToLore(
                                 "",
                                 "${CC.GRAY}Next Level: ${CC.WHITE}Lv.${nextUnownedLevel.key}",
-                                "${CC.GRAY}Cost: ${CC.GOLD}${Numbers.format(nextUnownedLevel.value.price)} Coins"
+                                "${CC.GRAY}Cost: ${CC.D_PURPLE}${Numbers.format(nextUnownedLevel.value.price)} Arcade Coins"
                             )
                         } else
                         {

@@ -30,6 +30,7 @@ import gg.tropic.practice.minigame.event.PlayerMiniGameDisconnectMidGameEvent
 import gg.tropic.practice.minigame.event.functionality.MiniGamePlayerDeathEvent
 import gg.tropic.practice.statistics.StatisticService
 import gg.tropic.practice.strategies.MarkSpectatorStrategy
+import mc.arch.minigames.arcade.broadcast.ArcadeBroadcastTrigger
 import mc.arch.minigames.hungergames.HungerGamesGameConfiguration
 import mc.arch.minigames.hungergames.HungerGamesTypeMetadata
 import mc.arch.minigames.hungergames.kits.menu.PreGameSelectionMenu
@@ -76,6 +77,8 @@ object HungerGamesGameOrchestrator : BasicMiniGameOrchestrator<HungerGamesGameCo
     @Configure
     fun configure()
     {
+        ArcadeBroadcastTrigger.installInteractListener()
+
         val selectAKitItem = ItemBuilder.of(XMaterial.BOW)
             .name("${CC.GREEN}Select a Kit ${CC.GRAY}(Right Click)")
             .addToLore(
@@ -150,6 +153,7 @@ object HungerGamesGameOrchestrator : BasicMiniGameOrchestrator<HungerGamesGameCo
                 it.player.inventory.setItem(0, selectAKitItem)
                 it.player.inventory.setItem(8, returnToSpawnItem)
                 it.player.updateInventory()
+                ArcadeBroadcastTrigger.giveItemIfPermitted(it.player, slot = 1)
             }
 
         // Kit selection menu
@@ -361,7 +365,7 @@ object HungerGamesGameOrchestrator : BasicMiniGameOrchestrator<HungerGamesGameCo
                                 sender = Accounts.SERVER,
                                 receiver = resources.player,
                                 type = TransactionType.Deposit,
-                                economy = "experience",
+                                economy = "arcade-experience",
                                 amount = 50L
                             )
                         )
@@ -372,13 +376,13 @@ object HungerGamesGameOrchestrator : BasicMiniGameOrchestrator<HungerGamesGameCo
                                 sender = Accounts.SERVER,
                                 receiver = resources.player,
                                 type = TransactionType.Deposit,
-                                economy = "coins",
+                                economy = "arcade-coins",
                                 amount = 150L
                             )
                         )
 
-                    resources.toPlayer()?.sendMessage("${CC.GOLD}+150 Coins (Winning a game)")
-                    resources.toPlayer()?.sendMessage("${CC.GREEN}+50 Experience (Winning a game)")
+                    resources.toPlayer()?.sendMessage("${CC.D_PURPLE}+150 Arcade Coins (Winning a game)")
+                    resources.toPlayer()?.sendMessage("${CC.L_PURPLE}+50 Arcade Experience (Winning a game)")
                 }
 
                 // Statistics for all players
@@ -557,7 +561,7 @@ object HungerGamesGameOrchestrator : BasicMiniGameOrchestrator<HungerGamesGameCo
                                 sender = Accounts.SERVER,
                                 receiver = killer.uniqueId,
                                 type = TransactionType.Deposit,
-                                economy = "experience",
+                                economy = "arcade-experience",
                                 amount = 15L
                             )
                         )
@@ -568,13 +572,13 @@ object HungerGamesGameOrchestrator : BasicMiniGameOrchestrator<HungerGamesGameCo
                                 sender = Accounts.SERVER,
                                 receiver = killer.uniqueId,
                                 type = TransactionType.Deposit,
-                                economy = "coins",
+                                economy = "arcade-coins",
                                 amount = 25L
                             )
                         )
 
-                    killer.sendMessage("${CC.GOLD}+25 Coins (Eliminating a player)")
-                    killer.sendMessage("${CC.GREEN}+15 Experience (Eliminating a player)")
+                    killer.sendMessage("${CC.D_PURPLE}+25 Arcade Coins (Eliminating a player)")
+                    killer.sendMessage("${CC.L_PURPLE}+15 Arcade Experience (Eliminating a player)")
 
                     GameService.runFinalDeathEffectsFor(
                         killer = killer,

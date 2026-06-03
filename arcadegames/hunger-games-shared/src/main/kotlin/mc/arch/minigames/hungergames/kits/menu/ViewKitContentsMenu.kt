@@ -32,7 +32,7 @@ class ViewKitContentsMenu(
 {
     companion object
     {
-        private const val ECONOMY_ID = "hunger-games-coins"
+        private const val ECONOMY_ID = "arcade-coins"
     }
 
     init
@@ -66,7 +66,7 @@ class ViewKitContentsMenu(
                 "${CC.GRAY}Levels: ${CC.WHITE}${kit.levels.keys.count { it <= HungerGamesKit.PURCHASABLE_MAX_LEVEL }}",
                 "",
                 "${CC.GRAY}Your Balance: ${
-                    economy?.format(balance) ?: "${CC.GOLD}${Numbers.format(balance)} Coins"
+                    economy?.format(balance) ?: "${CC.D_PURPLE}${Numbers.format(balance)} Arcade Coins"
                 }",
             )
             .apply {
@@ -118,13 +118,13 @@ class ViewKitContentsMenu(
                         loreLines.add("")
                     } else
                     {
-                        loreLines.add("${CC.GRAY}Price: ${CC.GOLD}${Numbers.format(price)} Coins")
+                        loreLines.add("${CC.GRAY}Price: ${CC.D_PURPLE}${Numbers.format(price)} Arcade Coins")
                         if (balance >= price)
                         {
                             loreLines.add("${CC.GREEN}You can afford this!")
                         } else
                         {
-                            loreLines.add("${CC.RED}You need ${CC.YELLOW}${Numbers.format(price - balance)} ${CC.RED}more coins!")
+                            loreLines.add("${CC.RED}You need ${CC.D_PURPLE}${Numbers.format(price - balance)} ${CC.RED}more Arcade Coins!")
                         }
                         loreLines.add("")
                     }
@@ -176,7 +176,7 @@ class ViewKitContentsMenu(
                     // Click action lore
                     if (!isOwned)
                     {
-                        loreLines.add("${CC.GOLD}Click to purchase for ${CC.YELLOW}${Numbers.format(price)} Coins${CC.GOLD}!")
+                        loreLines.add("${CC.GOLD}Click to purchase for ${CC.D_PURPLE}${Numbers.format(price)} Arcade Coins${CC.GOLD}!")
                     }
 
                     setLore(loreLines)
@@ -210,9 +210,9 @@ class ViewKitContentsMenu(
                     {
                         Button.playFail(player)
                         player.sendMessage(
-                            "${CC.RED}You don't have enough coins! You need ${CC.GOLD}${
+                            "${CC.RED}You don't have enough Arcade Coins! You need ${CC.D_PURPLE}${
                                 Numbers.format(price - currentBalance)
-                            }${CC.RED} more coins."
+                            }${CC.RED} more Arcade Coins."
                         )
                         return@toButton
                     }
@@ -250,9 +250,9 @@ class ViewKitContentsMenu(
 
                         Button.playNeutral(player)
                         player.sendMessage(
-                            "${CC.GREEN}You purchased ${CC.GOLD}${kit.displayName} Level $level${CC.GREEN} for ${CC.GOLD}${
+                            "${CC.GREEN}You purchased ${CC.GOLD}${kit.displayName} Level $level${CC.GREEN} for ${CC.BD_PURPLE}${
                                 Numbers.format(price)
-                            } Coins${CC.GREEN}!"
+                            } Arcade Coins${CC.GREEN}!"
                         )
 
                         // Refresh menu
@@ -533,12 +533,12 @@ class ViewKitContentsMenu(
                         })",
                         "${if (meetsPrestigeCoins) CC.GREEN else CC.RED} ✦ ${CC.WHITE}${
                             Numbers.format(HungerGamesProfile.PRESTIGE_COIN_REQUIREMENT)
-                        } Coins ${CC.GRAY}(${Numbers.format(balance)}/${
+                        } Arcade Coins ${CC.GRAY}(${Numbers.format(balance)}/${
                             Numbers.format(HungerGamesProfile.PRESTIGE_COIN_REQUIREMENT)
                         })",
                         "",
                         "${CC.GRAY}Rewards:",
-                        "${CC.GOLD} ✦ ${CC.WHITE}${Numbers.format(coinReward)} Coins",
+                        "${CC.GOLD} ✦ ${CC.WHITE}${Numbers.format(coinReward)} Arcade Coins",
                         "${CC.AQUA} ✦ ${CC.WHITE}${kit.displayName} Prestige Loadout",
                         "${CC.LIGHT_PURPLE} ✦ ${CC.WHITE}${kit.displayName} Kill Effect",
                         "",
@@ -575,7 +575,7 @@ class ViewKitContentsMenu(
                 {
                     Button.playFail(player)
                     player.sendMessage(
-                        "${CC.RED}You need ${CC.GOLD}${Numbers.format(HungerGamesProfile.PRESTIGE_COIN_REQUIREMENT)} coins${CC.RED}! You have ${CC.GOLD}${Numbers.format(currentBalance)}${CC.RED}."
+                        "${CC.RED}You need ${CC.D_PURPLE}${Numbers.format(HungerGamesProfile.PRESTIGE_COIN_REQUIREMENT)} Arcade Coins${CC.RED}! You have ${CC.D_PURPLE}${Numbers.format(currentBalance)}${CC.RED}."
                     )
                     return@toButton
                 }
@@ -626,7 +626,7 @@ class ViewKitContentsMenu(
                     player.sendMessage("${CC.GRAY}You prestiged the ${CC.GOLD}${kit.displayName}${CC.GRAY} kit!")
                     player.sendMessage("")
                     player.sendMessage("${CC.GRAY}Rewards received:")
-                    player.sendMessage("${CC.GOLD} ✦ ${CC.WHITE}${Numbers.format(reward)} Coins")
+                    player.sendMessage("${CC.GOLD} ✦ ${CC.WHITE}${Numbers.format(reward)} Arcade Coins")
                     player.sendMessage("${CC.AQUA} ✦ ${CC.WHITE}${kit.displayName} Prestige Loadout Unlocked!")
                     player.sendMessage("${CC.LIGHT_PURPLE} ✦ ${CC.WHITE}${kit.displayName} Kill Effect")
                     player.sendMessage("")

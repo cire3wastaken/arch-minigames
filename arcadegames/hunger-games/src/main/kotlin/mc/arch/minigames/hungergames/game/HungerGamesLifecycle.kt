@@ -13,6 +13,7 @@ import gg.tropic.practice.minigame.MiniGameScoreboard
 import gg.tropic.practice.minigame.MiniGameTypeMetadata
 import mc.arch.minigames.hungergames.HungerGamesGameConfiguration
 import mc.arch.minigames.hungergames.HungerGamesTypeMetadata
+import mc.arch.minigames.hungergames.privategames.HungerGamesPrivateGameSettings
 import mc.arch.minigames.hungergames.game.events.*
 import mc.arch.minigames.hungergames.game.resources.PlayerResources
 import mc.arch.minigames.hungergames.lootpool.HGLootGenerator
@@ -67,6 +68,24 @@ class HungerGamesLifecycle(
     var deathmatchStartedAt = 0L
     var deathmatchGracePeriod = 0
     var blitzStarInChest = false
+
+    private val gracePeriodSeconds: Int = if (game.expectationModel.isPrivateGame)
+    {
+        game.expectationModel.privateGameSettings
+            ?.getSetting(HungerGamesPrivateGameSettings.GRACE_PERIOD, HungerGamesPrivateGameSettings.DEFAULT_GRACE_PERIOD) ?: 0
+    } else 0
+
+    private val chestRefillSeconds: Int = if (game.expectationModel.isPrivateGame)
+    {
+        game.expectationModel.privateGameSettings
+            ?.getSetting(HungerGamesPrivateGameSettings.CHEST_REFILL_TIMER, HungerGamesPrivateGameSettings.DEFAULT_CHEST_REFILL_TIMER) ?: 0
+    } else 0
+
+    private val naturalRegenEnabled: Boolean = if (game.expectationModel.isPrivateGame)
+    {
+        game.expectationModel.privateGameSettings
+            ?.getSetting(HungerGamesPrivateGameSettings.NATURAL_REGEN, HungerGamesPrivateGameSettings.DEFAULT_NATURAL_REGEN) ?: false
+    } else false
 
     // Glass cage spawn system
     val glassCages = mutableListOf<GlassCage>()
@@ -259,6 +278,58 @@ class HungerGamesLifecycle(
                     }
                 }
                 HGLootGenerator.fillChestsFromDataSync(chests, HGLootType.INITIAL)
+
+                if (game.expectationModel.isPrivateGame)
+                {
+                    world.setGameRuleValue("naturalRegeneration", naturalRegenEnabled.toString())
+                }
+
+                if (gracePeriodSeconds > 0)
+                {
+                    val graceTerminable = CompositeTerminable.create()
+                    graceTerminable.bindWith(game)
+
+                    Events
+                        .subscribe(org.bukkit.event.entity.EntityDamageByEntityEvent::class.java)
+                        .filter { it.damager is Player && it.entity is Player }
+                        .filter { GameService.byWorld(it.entity.world) == game }
+                        .handler { it.isCancelled = true }
+                        .bindWith(graceTerminable)
+
+                    game.sendMessage("${CC.YELLOW}Grace period active — PvP is disabled for ${CC.GREEN}${gracePeriodSeconds}s${CC.YELLOW}.")
+
+                    Schedulers
+                        .sync()
+                        .runLater({
+                            graceTerminable.closeAndReportException()
+                            game.sendMessage("${CC.RED}The grace period has ended — PvP is now enabled!")
+                        }, gracePeriodSeconds * 20L)
+                        .bindWith(game)
+                }
+
+                if (chestRefillSeconds > 0)
+                {
+                    Schedulers
+                        .sync()
+                        .runRepeating({ _ ->
+                            val refillChests = mutableListOf<Chest>()
+                            for (chunk in world.loadedChunks)
+                            {
+                                for (te in chunk.tileEntities)
+                                {
+                                    if (te is Chest)
+                                    {
+                                        te.inventory.clear()
+                                        refillChests.add(te)
+                                    }
+                                }
+                            }
+                            HGLootGenerator.fillChestsFromDataSync(refillChests, HGLootType.REFILL)
+                            game.sendMessage("${CC.YELLOW}All chests have been ${CC.GREEN}refilled${CC.YELLOW}!")
+                            game.playSound(Sound.CHEST_OPEN, 1.0f)
+                        }, chestRefillSeconds * 20L, chestRefillSeconds * 20L)
+                        .bindWith(game)
+                }
             }
             .bindWith(game)
     }

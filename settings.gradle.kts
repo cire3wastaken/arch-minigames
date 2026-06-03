@@ -43,6 +43,9 @@ include(
     "arcadegames:miniwalls",
     "arcadegames:miniwalls-shared",
 
+    "arcadegames:hunger-games",
+    "arcadegames:hunger-games-shared",
+
     "services:application",
     "services:replications",
     "services:queue",

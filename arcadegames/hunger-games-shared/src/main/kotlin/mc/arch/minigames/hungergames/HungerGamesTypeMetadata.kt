@@ -12,12 +12,12 @@ object HungerGamesTypeMetadata : MiniGameTypeMetadata(
     internalId = "hungergames",
     displayName = "Survival Games",
     item = XMaterial.IRON_SWORD,
-    lobbyGroup = "sglobby",
+    lobbyGroup = "arcadelobby",
     gameModes = mapOf(
         "solo_normal" to MiniGameModeMetadata(
             id = "solo_normal",
             queueId = "sg_solo_normal:Casual:1v1",
-            displayName = "Solo Normal",
+            displayName = "Solo",
             description = "Classic 16-player Survival Games!",
             displayItem = XMaterial.IRON_SWORD.parseItem()!!,
             mapGroup = "sg_solo_normal",
@@ -30,7 +30,7 @@ object HungerGamesTypeMetadata : MiniGameTypeMetadata(
         "doubles_normal" to MiniGameModeMetadata(
             id = "doubles_normal",
             queueId = "sg_doubles_normal:Casual:1v1",
-            displayName = "Doubles Normal",
+            displayName = "Doubles",
             description = "Team up! 12 teams of 2 in Survival Games!",
             displayItem = XMaterial.IRON_SWORD.parseItem()!!,
             mapGroup = "sg_doubles_normal",
