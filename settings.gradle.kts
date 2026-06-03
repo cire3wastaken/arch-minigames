@@ -38,6 +38,7 @@ include(
     "microgames:bridging-api",
 
     "arcadegames:arcade-api",
+    "arcadegames:arcade",
     "services:application",
     "services:replications",
     "services:queue",
