@@ -6,6 +6,8 @@ import me.lucko.helper.Schedulers
 import me.lucko.helper.scheduler.Task
 import java.time.Duration
 import java.util.LinkedList
+import java.util.logging.Level
+import java.util.logging.Logger
 
 /**
  * @author Subham
@@ -27,7 +29,7 @@ data class MiniGameEventTracker(private val lifecycle: MiniGameLifecycle<*>) : R
                 if (events.isNotEmpty())
                 {
                     nextEvent = events.pop()
-                    task = Schedulers.async()
+                    task = Schedulers.sync()
                         .runRepeating(this, 0L, 20L)
                         .apply { bindWith(lifecycle.game) }
                 }
@@ -41,20 +43,29 @@ data class MiniGameEventTracker(private val lifecycle: MiniGameLifecycle<*>) : R
 
     override fun run()
     {
-        if (nextEvent == null)
+        val current = nextEvent
+        if (current == null)
         {
             task?.closeAndReportException()
             return
         }
 
-        if (timeUntilNextEvent() <= 0)
+        if (timeUntilNextEvent() > 0)
         {
-            nextEvent!!.execute()
-            if (events.isNotEmpty())
-            {
-                nextEvent = events.pop()
-                lastEventEnd = System.currentTimeMillis()
-            }
+            return
+        }
+
+        try
+        {
+            current.execute()
+        } catch (exception: Exception)
+        {
+            Logger.getLogger("MiniGameEventTracker")
+                .log(Level.SEVERE, "Failed to execute minigame event '${current.description}'", exception)
+        } finally
+        {
+            lastEventEnd = System.currentTimeMillis()
+            nextEvent = if (events.isNotEmpty()) events.pop() else null
         }
     }
 }
