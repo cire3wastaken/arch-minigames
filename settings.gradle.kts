@@ -55,21 +55,9 @@ include(
     "services:application:api",
     "services:games:game-manager",
 
-    "minigames:skywars",
-    "minigames:skywars-lobby",
-    "minigames:skywars-shared",
-
     "minigames:bedwars",
     "minigames:bedwars-lobby",
     "minigames:bedwars-shared",
-
-    "minigames:miniwalls",
-    "minigames:miniwalls-lobby",
-    "minigames:miniwalls-shared",
-
-    "minigames:hunger-games",
-    "minigames:hunger-games-lobby",
-    "minigames:hunger-games-shared",
 
     "minigames:pof",
     "minigames:pof-lobby",

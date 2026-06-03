@@ -1,9 +1,6 @@
 [submodule "arcadegames/miniwalls"]
 	path = arcadegames/miniwalls
 	url = https://github.com/ArchMC-Development/minigames-miniwalls.git
-[submodule "minigames/miniwalls-lobby"]
-	path = minigames/miniwalls-lobby
-	url = https://github.com/ArchMC-Development/minigames-miniwalls-lobby.git
 [submodule "arcadegames/miniwalls-shared"]
 	path = arcadegames/miniwalls-shared
 	url = https://github.com/ArchMC-Development/minigames-miniwalls-shared.git
@@ -28,9 +25,6 @@
 [submodule "arcadegames/skywars-shared"]
 	path = arcadegames/skywars-shared
 	url = https://github.com/ArchMC-Development/minigames-skywars-shared.git
-[submodule "minigames/skywars-lobby"]
-	path = minigames/skywars-lobby
-	url = https://github.com/ArchMC-Development/minigames-skywars-lobby.git
 [submodule "sbb"]
 	path = sbb
 	url = https://github.com/ArchMC-Development/minigames-robots.git
