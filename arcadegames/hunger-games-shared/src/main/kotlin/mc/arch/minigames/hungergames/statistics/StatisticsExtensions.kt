@@ -40,7 +40,7 @@ fun PracticeProfile.formatCoreHolographicStatistics(): List<String>
 {
     val coreProfile = CorePlayerProfileService.find(identifier)
         ?: return listOf("${CC.GRAY}???")
-    val level = coreProfile.getLevelInfo("hungergames")
+    val level = coreProfile.getLevelInfo("arcade")
 
     return listOf(
         "${CC.GRAY}Level: ${CC.GRAY}${
