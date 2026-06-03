@@ -37,6 +37,9 @@ include(
     "arcadegames:arcade",
     "arcadegames:arcade-lobby",
 
+    "arcadegames:miniwalls",
+    "arcadegames:miniwalls-shared",
+
     "services:application",
     "services:replications",
     "services:queue",

@@ -1,11 +1,11 @@
-[submodule "minigames/miniwalls"]
-	path = minigames/miniwalls
+[submodule "arcadegames/miniwalls"]
+	path = arcadegames/miniwalls
 	url = https://github.com/ArchMC-Development/minigames-miniwalls.git
 [submodule "minigames/miniwalls-lobby"]
 	path = minigames/miniwalls-lobby
 	url = https://github.com/ArchMC-Development/minigames-miniwalls-lobby.git
-[submodule "minigames/miniwalls-shared"]
-	path = minigames/miniwalls-shared
+[submodule "arcadegames/miniwalls-shared"]
+	path = arcadegames/miniwalls-shared
 	url = https://github.com/ArchMC-Development/minigames-miniwalls-shared.git
 [submodule "microgames/bridging-api"]
 	path = microgames/bridging-api
