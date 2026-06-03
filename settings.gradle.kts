@@ -18,10 +18,6 @@ include(
     "public-api:pubapi-akers",
     "public-api:pubapi-pigdi",
 
-    "microgames:events",
-    "microgames:events-api",
-    "microgames:events-lobby",
-
     "persistentgames:housing",
     "persistentgames:housing-api",
     "persistentgames:housing-lobby",

@@ -7,15 +7,6 @@
 [submodule "minigames/miniwalls-shared"]
 	path = minigames/miniwalls-shared
 	url = https://github.com/ArchMC-Development/minigames-miniwalls-shared.git
-[submodule "microgames/events"]
-	path = microgames/events
-	url = https://github.com/ArchMC-Development/microgames-events.git
-[submodule "microgames/events-api"]
-	path = microgames/events-api
-	url = https://github.com/ArchMC-Development/microgames-events-api.git
-[submodule "microgames/events-lobby"]
-	path = microgames/events-lobby
-	url = https://github.com/ArchMC-Development/microgames-events-lobby.git
 [submodule "microgames/bridging-api"]
 	path = microgames/bridging-api
 	url = https://github.com/ArchMC-Development/microgames-bridging-api.git
