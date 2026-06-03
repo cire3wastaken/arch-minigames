@@ -4,6 +4,7 @@ import gg.tropic.practice.configuration.PracticeConfigurationService
 import gg.tropic.practice.configuration.minigame.MinigamePlayNPC
 import gg.tropic.practice.minigame.MiniGameModeMetadata
 import gg.tropic.practice.minigame.joinGame
+import gg.tropic.practice.minigame.menu.MinigameNPCModeSelectorMenu
 import gg.tropic.practice.minigame.menu.MinigameNPCPlayMenu
 import me.lucko.helper.cooldown.Cooldown
 import me.lucko.helper.cooldown.CooldownMap
@@ -22,41 +23,43 @@ import kotlin.collections.listOf
 class MinigamePlayNPCEntity(
     val configuration: MinigamePlayNPC,
     val isAutoJoin: Boolean = configuration.associatedGameMode == "autojoin",
-    val modeMetadata: MiniGameModeMetadata? = PracticeConfigurationService
-        .minigameType()
-        .provide()
-        .modeNullable(configuration.associatedGameMode)
-) : NpcEntity(
-    lines = if (isAutoJoin)
-    {
-        listOf(
-            "${CC.B_YELLOW}CLICK TO PLAY",
-            "${CC.RED}Join Random Game",
-            PracticeConfigurationService.minigameType()
+    val modeMetadatas: List<MiniGameModeMetadata> = configuration.associatedGameMode
+        .split(",")
+        .map(String::trim)
+        .filter(String::isNotEmpty)
+        .mapNotNull { id ->
+            PracticeConfigurationService
+                .minigameType()
                 .provide()
-                .totalPlayersPlaying()
-                .let { players ->
-                    "${CC.B_YELLOW}$players player${
-                        if (players == 1) "" else "s"
-                    }"
-                }
-        )
-    } else
+                .modeNullable(id)
+        }
+) : NpcEntity(
+    lines = when
     {
-        modeMetadata?.toNPCHeader() ?: listOf(
-            "${CC.B_YELLOW}CLICK TO PLAY",
-            "${CC.RED}???",
-            "${CC.B_YELLOW}0 players"
-        )
+        isAutoJoin -> autoJoinHeader()
+        modeMetadatas.size > 1 -> groupHeader(configuration, modeMetadatas)
+        modeMetadatas.size == 1 -> modeMetadatas.first().toNPCHeader()
+        else -> nonExistentHeader()
     },
     location = configuration.position.toLocation(
         Bukkit.getWorlds().first()
     )
 )
 {
+    val modeMetadata: MiniGameModeMetadata? = modeMetadatas.firstOrNull()
+    val isMultiMode: Boolean = modeMetadatas.size > 1
+
     init
     {
         persistent = false
+    }
+
+    fun currentHeader() = if (isMultiMode)
+    {
+        groupHeader(configuration, modeMetadatas)
+    } else
+    {
+        modeMetadatas.first().toNPCHeader()
     }
 
     fun configure()
@@ -66,7 +69,7 @@ class MinigamePlayNPCEntity(
 
         if (modeMetadata != null)
         {
-            updateLines(modeMetadata.toNPCHeader())
+            updateLines(currentHeader())
             updateTexture(
                 modeMetadata.npcSkinValue,
                 modeMetadata.npcSkinSignature
@@ -94,24 +97,51 @@ class MinigamePlayNPCEntity(
         updateForCurrentWatchers()
     }
 
-    fun generateNonExistentLines() = listOf(
-        "${CC.B_YELLOW}CLICK TO PLAY",
-        "${CC.RED}???",
-        "${CC.B_YELLOW}0 players"
-    )
+    fun generateNonExistentLines() = nonExistentHeader()
 
-    fun generateAutoJoinLines() = listOf(
-        "${CC.B_YELLOW}CLICK TO PLAY",
-        "${CC.RED}Join Random Game",
-        PracticeConfigurationService.minigameType()
-            .provide()
-            .totalPlayersPlaying()
-            .let { players ->
-                "${CC.B_YELLOW}$players player${
-                    if (players == 1) "" else "s"
-                }"
-            }
-    )
+    fun generateAutoJoinLines() = autoJoinHeader()
+
+    companion object
+    {
+        fun nonExistentHeader() = listOf(
+            "${CC.B_YELLOW}CLICK TO PLAY",
+            "${CC.RED}???",
+            "${CC.B_YELLOW}0 players"
+        )
+
+        fun autoJoinHeader() = listOf(
+            "${CC.B_YELLOW}CLICK TO PLAY",
+            "${CC.RED}Join Random Game",
+            PracticeConfigurationService.minigameType()
+                .provide()
+                .totalPlayersPlaying()
+                .let { players ->
+                    "${CC.B_YELLOW}$players player${
+                        if (players == 1) "" else "s"
+                    }"
+                }
+        )
+
+        fun groupTitle(
+            configuration: MinigamePlayNPC,
+            modes: List<MiniGameModeMetadata>
+        ) = configuration.displayName.ifBlank {
+            modes.joinToString(" / ") { it.displayName }
+        }
+
+        fun groupHeader(
+            configuration: MinigamePlayNPC,
+            modes: List<MiniGameModeMetadata>
+        ): List<String>
+        {
+            val players = modes.sumOf { it.playersPlaying() }
+            return listOf(
+                "${CC.B_YELLOW}CLICK TO PLAY",
+                "${CC.RED}${groupTitle(configuration, modes)}",
+                "${CC.B_YELLOW}$players player${if (players == 1) "" else "s"}"
+            )
+        }
+    }
 
     private val cooldowns = CooldownMap.create<UUID>(
         Cooldown.ofTicks(20L)
@@ -128,6 +158,15 @@ class MinigamePlayNPCEntity(
         if (modeMetadata == null)
         {
             player.sendMessage("${CC.D_GRAY}Coming soon...")
+            return
+        }
+
+        if (isMultiMode)
+        {
+            MinigameNPCModeSelectorMenu(
+                groupTitle(configuration, modeMetadatas),
+                modeMetadatas
+            ).openMenu(player)
             return
         }
 
@@ -164,6 +203,15 @@ class MinigamePlayNPCEntity(
             }
 
             player.sendMessage("${CC.D_GRAY}Coming soon...")
+            return
+        }
+
+        if (isMultiMode)
+        {
+            MinigameNPCModeSelectorMenu(
+                groupTitle(configuration, modeMetadatas),
+                modeMetadatas
+            ).openMenu(player)
             return
         }
 
