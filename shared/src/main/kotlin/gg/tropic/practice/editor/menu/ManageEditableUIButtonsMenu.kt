@@ -20,6 +20,59 @@ class ManageEditableUIButtonsMenu(
     private val uiId: String
 ) : Menu("Managing UI Buttons: $uiId")
 {
+    private var moveSource: Int? = null
+
+    private fun handleMoveClick(player: Player, slot: Int)
+    {
+        val source = moveSource
+        if (source == null)
+        {
+            val hasItem = PracticeConfigurationService
+                .cached().editableUIs[uiId]!!
+                .buttons[slot] != null
+
+            if (!hasItem)
+            {
+                player.sendMessage("${CC.RED}There is no item in that slot to move.")
+                openMenu(player)
+                return
+            }
+
+            moveSource = slot
+            player.sendMessage("${CC.B_PINK}Selected the item in slot $slot. ${CC.PINK}Shift-click another slot to move it there.")
+            openMenu(player)
+            return
+        }
+
+        if (source == slot)
+        {
+            moveSource = null
+            player.sendMessage("${CC.YELLOW}Cancelled moving the item.")
+            openMenu(player)
+            return
+        }
+
+        PracticeConfigurationService.editAndSave {
+            val buttons = editableUIs[uiId]!!.buttons
+            val moving = buttons.remove(source)
+            val existing = buttons.remove(slot)
+
+            if (moving != null)
+            {
+                buttons[slot] = moving
+            }
+
+            if (existing != null)
+            {
+                buttons[source] = existing
+            }
+        }
+
+        moveSource = null
+        player.sendMessage("${CC.B_GREEN}Moved the item to slot $slot.")
+        openMenu(player)
+    }
+
     override fun getButtons(player: Player) = PracticeConfigurationService
         .cached().editableUIs[uiId]!!
         .compose()
@@ -32,6 +85,13 @@ class ManageEditableUIButtonsMenu(
             val buttonItem = it.value.getButtonItem(player)
             if (uiItem != null)
             {
+                val moveHint = when
+                {
+                    moveSource == it.key -> "${CC.B_PINK}SHIFT-CLICK TO CANCEL MOVE"
+                    moveSource != null -> "${CC.B_PINK}SHIFT-CLICK TO SWAP HERE"
+                    else -> "${CC.B_PINK}SHIFT-CLICK TO MOVE"
+                }
+
                 return@mapValues ItemBuilder.copyOf(buttonItem)
                     .addToLore(
                         "",
@@ -49,12 +109,19 @@ class ManageEditableUIButtonsMenu(
                         "",
                         "${CC.B_AQUA}LEFT-CLICK TO CONFIGURE",
                         "${CC.B_AQUA}RIGHT-CLICK TO DELETE",
+                        moveHint,
                         "${CC.GRAY}${CC.STRIKE_THROUGH}${" ".repeat(20)}",
                     )
                     .toButton { _, type ->
                         Button.playNeutral(player)
 
-                        if (type!!.isRightClick)
+                        if (type!!.isShiftClick)
+                        {
+                            handleMoveClick(player, it.key)
+                            return@toButton
+                        }
+
+                        if (type.isRightClick)
                         {
                             ConfirmMenu { confirmed ->
                                 if (confirmed)
@@ -77,10 +144,21 @@ class ManageEditableUIButtonsMenu(
                 .copyOf(buttonItem)
                 .name("${CC.B_RED}NO UI ITEM SET")
                 .addToLore(
-                    "${CC.RED}Click to set item!"
+                    "${CC.RED}Click to set item!",
+                    *(if (moveSource != null)
+                        arrayOf("${CC.B_PINK}SHIFT-CLICK TO MOVE HERE")
+                    else
+                        emptyArray<String>())
                 )
-                .toButton { _, _ ->
+                .toButton { _, type ->
                     Button.playNeutral(player)
+
+                    if (type != null && type.isShiftClick)
+                    {
+                        handleMoveClick(player, it.key)
+                        return@toButton
+                    }
+
                     PracticeConfigurationService.editAndSave {
                         editableUIs[uiId]!!.buttons.put(it.key, EditableUIButton())
                     }
@@ -98,10 +176,21 @@ class ManageEditableUIButtonsMenu(
                             .of(XMaterial.BARRIER)
                             .name("${CC.B_RED}NO UI ITEM SET")
                             .addToLore(
-                                "${CC.RED}Click to set item!"
+                                "${CC.RED}Click to set item!",
+                                *(if (moveSource != null)
+                                    arrayOf("${CC.B_PINK}SHIFT-CLICK TO MOVE HERE")
+                                else
+                                    emptyArray<String>())
                             )
-                            .toButton { _, _ ->
+                            .toButton { _, type ->
                                 Button.playNeutral(player)
+
+                                if (type != null && type.isShiftClick)
+                                {
+                                    handleMoveClick(player, slot)
+                                    return@toButton
+                                }
+
                                 PracticeConfigurationService.editAndSave {
                                     editableUIs[uiId]!!.buttons.put(slot, EditableUIButton())
                                 }
