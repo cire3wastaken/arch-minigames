@@ -39,6 +39,8 @@ include(
 
     "arcadegames:arcade-api",
     "arcadegames:arcade",
+    "arcadegames:arcade-lobby",
+
     "services:application",
     "services:replications",
     "services:queue",
