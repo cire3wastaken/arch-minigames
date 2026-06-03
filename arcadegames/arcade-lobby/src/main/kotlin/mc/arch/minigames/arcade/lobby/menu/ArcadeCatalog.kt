@@ -4,6 +4,7 @@ import com.cryptomorin.xseries.XMaterial
 import gg.tropic.practice.minigame.MiniGameTypeMetadata
 import gg.tropic.practice.provider.MiniProviderVersion
 import mc.arch.minigame.miniwalls.MiniWallsGameType
+import mc.arch.minigames.pof.PofGameType
 import mc.arch.minigames.arcade.ArcadeMode
 import mc.arch.minigames.hungergames.HungerGamesTypeMetadata
 import mc.arch.minigames.skywars.SkyWarsTypeMetadata
@@ -44,8 +45,7 @@ object ArcadeCatalog
         "skywars" to Presentation(
             XMaterial.FEATHER, 20,
             listOf(
-                "Spawn on an island, raid",
-                "the middle, and knock",
+                "Raid the middle and knock",
                 "everyone else off."
             )
         ),
@@ -56,6 +56,14 @@ object ArcadeCatalog
                 "Break the walls, raid your",
                 "enemies, be the last team",
                 "standing."
+            )
+        ),
+        "pof" to Presentation(
+            XMaterial.GOLD_INGOT, 19,
+            listOf(
+                "Random loot rains down —",
+                "build, fight, and outlast",
+                "everyone on your pillar."
             )
         ),
     )
@@ -91,7 +99,8 @@ object ArcadeCatalog
     private fun externalCards() = listOf(
         HungerGamesTypeMetadata,
         SkyWarsTypeMetadata,
-        MiniWallsGameType
+        MiniWallsGameType,
+        PofGameType
     ).mapNotNull { type ->
         val presentation = externalPresentation[type.internalId] ?: return@mapNotNull null
         ArcadeCard(

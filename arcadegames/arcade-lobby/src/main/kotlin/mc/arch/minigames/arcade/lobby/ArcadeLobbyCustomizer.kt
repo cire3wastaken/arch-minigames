@@ -13,6 +13,7 @@ import mc.arch.minigames.arcade.ArcadeTypeMetadata
 import mc.arch.minigames.arcade.lobby.extension.ArcadeGameExtensionRegistry
 import mc.arch.minigames.arcade.lobby.extension.ArcadeGlobalCompetitiveCustomizer
 import mc.arch.minigames.arcade.lobby.menu.ArcadeCatalog
+import mc.arch.minigames.pof.PofGameType
 import mc.arch.minigames.hungergames.HungerGamesTypeMetadata
 import mc.arch.minigames.skywars.SkyWarsTypeMetadata
 import mc.arch.minigames.arcade.lobby.menu.ArcadeGameSelectorMenu
@@ -50,6 +51,7 @@ object ArcadeLobbyCustomizer : MinigameLobbyCustomizer, MinigameLobbyScoreboardP
         ArcadeTypeMetadata.registerExternalModes("sg", HungerGamesTypeMetadata.gameModes)
         ArcadeTypeMetadata.registerExternalModes("mw", MiniWallsGameType.gameModes)
         ArcadeTypeMetadata.registerExternalModes("sw", SkyWarsTypeMetadata.gameModes)
+        ArcadeTypeMetadata.registerExternalModes("pof", PofGameType.gameModes)
 
         MinigameLobby.customize(this, this)
 

@@ -8,4 +8,5 @@ dependencies {
     implementation(project(":arcadegames:skywars-shared"))
     implementation(project(":arcadegames:miniwalls-shared"))
     implementation(project(":arcadegames:hunger-games-shared"))
+    implementation(project(":arcadegames:pof-shared"))
 }

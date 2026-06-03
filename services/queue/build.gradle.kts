@@ -9,7 +9,7 @@ dependencies {
     compileOnly(project(":arcadegames:miniwalls-shared"))
     compileOnly(project(":arcadegames:skywars-shared"))
     compileOnly(project(":minigames:bedwars-shared"))
-    compileOnly(project(":minigames:pof-shared"))
+    compileOnly(project(":arcadegames:pof-shared"))
     compileOnly(project(":arcadegames:arcade-api"))
     implementation(project(":arcadegames:hunger-games-shared"))
 

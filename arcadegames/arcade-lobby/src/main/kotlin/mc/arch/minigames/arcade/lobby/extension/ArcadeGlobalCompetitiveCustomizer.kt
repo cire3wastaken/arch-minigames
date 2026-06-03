@@ -9,6 +9,7 @@ import gg.tropic.practice.profile.PracticeProfileService
 import gg.tropic.practice.statistics.StatisticID
 import gg.tropic.practice.statistics.numericalValueOf
 import mc.arch.minigame.miniwalls.services.CoreMiniWallsStatistic
+import mc.arch.minigames.pof.services.CorePofStatistic
 import mc.arch.minigames.arcade.ArcadeMode
 import mc.arch.minigames.arcade.ArcadeStatistic
 import mc.arch.minigames.hungergames.statistics.CoreHungerGamesStatistic
@@ -106,9 +107,21 @@ object ArcadeGlobalCompetitiveCustomizer : MinigameCompetitiveCustomizer
                 StatLine("Times Caught", ArcadeStatistic.RLGL_TIMES_CAUGHT.statisticID),
             )
         ),
+        GameStats(
+            "Pillar of Fortune", XMaterial.GOLD_BLOCK,
+            CorePofStatistic.WINS.toCore(),
+            CorePofStatistic.KILLS.toCore(),
+            CorePofStatistic.PLAYS.toCore(),
+            CorePofStatistic.LOSSES.toCore(),
+            extra = listOf(
+                StatLine("Win Streak", CorePofStatistic.WIN_STREAK.toCore()),
+                StatLine("Blocks Placed", CorePofStatistic.BLOCKS_PLACED.toCore()),
+                StatLine("Loot Picked Up", CorePofStatistic.LOOT_PICKED_UP.toCore()),
+            )
+        ),
     )
 
-    private val cardSlots = listOf(20, 22, 24, 29, 31, 33)
+    private val cardSlots = listOf(20, 22, 24, 29, 31, 33, 40)
 
     private fun PracticeProfile.total(ids: List<StatisticID?>) =
         ids.filterNotNull().sumOf { numericalValueOf(it)?.score?.toLong() ?: 0L }

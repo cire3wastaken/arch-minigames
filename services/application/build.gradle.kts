@@ -18,7 +18,7 @@ dependencies {
     implementation(project(":persistentgames:housing-api"))
     implementation(project(":persistentgames:prison-shared"))
     implementation(project(":minigames:bedwars-shared"))
-    implementation(project(":minigames:pof-shared"))
+    implementation(project(":arcadegames:pof-shared"))
     implementation(project(":microgames:bridging-api"))
     implementation(project(":arcadegames:arcade-api"))
 

@@ -4,8 +4,8 @@ import gg.tropic.practice.application.api.defaults.kit.ImmutableKit
 import gg.tropic.practice.queue.AbstractSubscribableMinigamePlayerQueue
 import gg.tropic.practice.queue.QueueEntry
 import gg.tropic.practice.queue.QueueType
-import mc.arch.minigame.pof.PofGameConfiguration
-import mc.arch.minigame.pof.PofMode
+import mc.arch.minigames.pof.PofGameConfiguration
+import mc.arch.minigames.pof.PofMode
 
 class PofSubscribableMinigamePlayerQueue(
     kit: ImmutableKit,

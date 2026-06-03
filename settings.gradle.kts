@@ -46,6 +46,9 @@ include(
     "arcadegames:hunger-games",
     "arcadegames:hunger-games-shared",
 
+    "arcadegames:pof",
+    "arcadegames:pof-shared",
+
     "services:application",
     "services:replications",
     "services:queue",
@@ -58,10 +61,6 @@ include(
     "minigames:bedwars",
     "minigames:bedwars-lobby",
     "minigames:bedwars-shared",
-
-    "minigames:pof",
-    "minigames:pof-lobby",
-    "minigames:pof-shared",
 
     "minigames:duels-modern-lobby",
 

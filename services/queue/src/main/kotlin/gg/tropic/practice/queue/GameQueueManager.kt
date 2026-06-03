@@ -46,7 +46,7 @@ import io.sentry.SpanStatus
 import mc.arch.commons.communications.rpc.CommunicationGateway
 import mc.arch.minigame.bedwars.neo.BedWarsMode
 import mc.arch.minigame.miniwalls.MiniWallsMode
-import mc.arch.minigame.pof.PofMode
+import mc.arch.minigames.pof.PofMode
 import mc.arch.minigames.hungergames.HungerGamesMode
 import mc.arch.minigames.arcade.ArcadeMode
 import mc.arch.minigames.skywars.SkyWarsMode
@@ -742,7 +742,7 @@ object GameQueueManager
             HungerGamesMode.SOLO_NORMAL to "sg_solo_normal",
         )
 
-        sgKitId.forEach { pair ->
+        /*sgKitId.forEach { pair ->
             val sgKit = lookupKit(pair.second)?.first
             if (sgKit != null)
             {
@@ -752,6 +752,10 @@ object GameQueueManager
             {
                 queueHolder.forgetPlayerQueue(pair.second)
             }
+        }*/
+
+        sgKitId.forEach { pair ->
+            queueHolder.forgetPlayerQueue(pair.second)
         }
 
         val pofKitId = listOf(
