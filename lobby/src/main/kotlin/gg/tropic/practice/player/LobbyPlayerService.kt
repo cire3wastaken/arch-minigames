@@ -358,7 +358,10 @@ object LobbyPlayerService
 
         Events
             .subscribe(PlayerMoveEvent::class.java)
-            .filter { it.player.location.block.type == Material.STONE_PLATE }
+            .filter {
+                it.player.location.block.type == Material.STONE_PLATE ||
+                    it.player.location.block.type == Material.GOLD_PLATE
+            }
             .handler {
                 val configuration = PracticeConfigurationService.local()
                 if (!playerLaunchpadCooldown.test(it.player.uniqueId))
