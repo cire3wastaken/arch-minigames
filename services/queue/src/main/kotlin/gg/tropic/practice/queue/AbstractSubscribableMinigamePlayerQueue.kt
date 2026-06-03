@@ -198,6 +198,10 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
                     return@filter false
                 }
 
+                if (it.isPrivateGame) {
+                    return@filter false
+                }
+
                 var conditions = it.queueId == id &&
                     (it.state == GameState.Waiting || it.state == GameState.Starting)
 

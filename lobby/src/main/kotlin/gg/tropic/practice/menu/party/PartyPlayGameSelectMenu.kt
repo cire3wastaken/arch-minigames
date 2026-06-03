@@ -49,6 +49,37 @@ class PartyPlayGameSelectMenu() : Menu("Select a game")
 
                 PartyPlayTVTFights(players.toList()).openMenu(player)
             },
+        4 to ItemBuilder
+            .of(Material.IRON_SWORD)
+            .name("${CC.RED}Free-For-All Fights")
+            .addToLore(
+                "${CC.GRAY}Everyone for themselves!",
+                "${CC.GRAY}All party members fight in",
+                "${CC.GRAY}one arena — last player",
+                "${CC.GRAY}standing wins!",
+                "",
+                "${CC.GREEN}Click to play!"
+            )
+            .toButton { _, _ ->
+                val lobbyPlayer = LobbyPlayerService.find(player)
+                    ?: return@toButton
+
+                player.closeInventory()
+                if (!lobbyPlayer.isInParty())
+                {
+                    player.sendMessage("${CC.RED}You are no longer in a party!")
+                    return@toButton
+                }
+
+                val players = lobbyPlayer.partyOf().onlinePlayers()
+                if (players.size < 2)
+                {
+                    player.sendMessage("${CC.RED}You must have at least two players in your party to start a Free-For-All fight!")
+                    return@toButton
+                }
+
+                PartyPlayFFAFights(player, players.toList()).openMenu(player)
+            },
         5 to ItemBuilder
             .of(Material.ENDER_PORTAL_FRAME)
             .name("${CC.GOLD}Robot Fights")

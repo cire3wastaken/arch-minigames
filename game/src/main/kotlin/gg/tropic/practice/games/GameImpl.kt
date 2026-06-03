@@ -138,6 +138,8 @@ open class GameImpl(
     // TODO: Migrate to features
     var shouldContainIdentifiableTeams = true
     var shouldAllowFriendlyFire = false
+
+    var isFreeForAll = false
     var shouldKeepCentralChat = false
     var shouldExplodeAll = false
     var shouldShowAllPlayers = false
@@ -286,6 +288,19 @@ open class GameImpl(
 
         this.state = GameState.Completed
 
+        val winnerPlayers: List<UUID> = when
+        {
+            winner == null -> emptyList()
+            isFreeForAll -> winner.nonSpectators().map { it.uniqueId }
+            else -> winner.players.toList()
+        }
+        val loserPlayers: List<UUID> = when
+        {
+            winner == null -> emptyList()
+            isFreeForAll -> winner.players.filterNot { it in winnerPlayers }
+            else -> getAllOpponents(winner).flatMap(GameTeam::players)
+        }
+
         var eloUpdates: CompletableFuture<ELOUpdates>? = null
         val positionUpdates = mutableMapOf<UUID, CompletableFuture<StatisticChange>>()
         val extraInformation = mutableMapOf<UUID, Map<String, Map<String, String>>>()
@@ -296,10 +311,9 @@ open class GameImpl(
             robotInstance.forEach(RobotInstance::destroy)
         }
 
-        winner
-            ?.toBukkitPlayers()
-            ?.filterNotNull()
-            ?.onEach {
+        winnerPlayers
+            .mapNotNull(Bukkit::getPlayer)
+            .onEach {
                 val victoryDance = CosmeticRegistry
                     .getAllEquipped(
                         VictoryDanceCosmeticCategory,
@@ -353,7 +367,7 @@ open class GameImpl(
                         val profile = CorePlayerProfileService.find(it)
                         if (profile != null && expectationModel.queueType != null)
                         {
-                            val userIsWinner = winner.players.contains(it.uniqueId)
+                            val userIsWinner = it.uniqueId in winnerPlayers
                             val queueMultiplier = expectationModel.queueType!!.coinMultiplier
                             if (queueMultiplier != 0.0)
                             {
@@ -576,8 +590,8 @@ open class GameImpl(
 
             this.report = GameReport(
                 identifier = UUID.randomUUID(),
-                winners = winner.players.toList(),
-                losers = allOpponentPlayers,
+                winners = winnerPlayers,
+                losers = loserPlayers,
                 snapshots = snapshots,
                 duration = this.durationMillis(),
                 map = this.mapId,
