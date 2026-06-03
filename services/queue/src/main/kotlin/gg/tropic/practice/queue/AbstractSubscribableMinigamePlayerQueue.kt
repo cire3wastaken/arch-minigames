@@ -278,8 +278,8 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
                                 serverId
                             )
                         } else {
-                            // FAILED_ALREADY_STARTED isn't an instance fault — don't count it.
-                            if (joinGameResult.status != JoinIntoGameStatus.FAILED_ALREADY_STARTED) {
+                            if (joinGameResult.status != JoinIntoGameStatus.FAILED_ALREADY_STARTED &&
+                                joinGameResult.status != JoinIntoGameStatus.FAILED_PRIVATE_GAME) {
                                 recordInstanceFailure(serverId)
                             }
                             io.sentry.Sentry.addBreadcrumb(io.sentry.Breadcrumb().apply {
