@@ -53,6 +53,19 @@ class MiniGameJoinIntoGameHandler : RPCHandler<JoinIntoGameRequest, JoinIntoGame
                     )
                 }
 
+            if (gameImpl.expectationModel.isPrivateGame)
+            {
+                span?.setData("failure_reason", "private_game")
+                span?.status = SpanStatus.ABORTED
+                span?.finish()
+                context.reply(
+                    JoinIntoGameResult(
+                        status = JoinIntoGameStatus.FAILED_PRIVATE_GAME
+                    )
+                )
+                return
+            }
+
             var status = JoinIntoGameStatus.SUCCESS
             if (!(gameImpl.state(GameState.Waiting) || gameImpl.state(GameState.Starting)))
             {

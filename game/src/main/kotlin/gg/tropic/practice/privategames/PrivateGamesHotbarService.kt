@@ -10,14 +10,19 @@ import gg.tropic.practice.expectation.ExpectationService
 import gg.tropic.practice.games.GameState
 import gg.tropic.practice.games.event.PlayerJoinGameEvent
 import gg.tropic.practice.privategames.menu.PrivateGameSettingsMenu
+import gg.tropic.practice.privategames.settings.PrivateGameSettingsRegistry
 import me.lucko.helper.Events
+import me.lucko.helper.Schedulers
 import net.evilblock.cubed.util.CC
 import net.evilblock.cubed.util.bukkit.ItemBuilder
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.plugin.java.JavaPlugin
 import java.time.Duration
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Service that adds hotbar items for private games in the waiting lobby.
@@ -41,24 +46,59 @@ object PrivateGamesHotbarService
         )
         .build()
 
-    private val rateLimits = mutableMapOf<java.util.UUID, Long>()
+    private const val SETTINGS_SLOT = 2
+
+    private val rateLimits = mutableMapOf<UUID, Long>()
+    private val refreshing = ConcurrentHashMap.newKeySet<UUID>()
+    private val greeted = ConcurrentHashMap.newKeySet<UUID>()
 
     @Configure
     fun configure()
     {
-        // Add settings item to private games on player join
         Events
             .subscribe(PlayerJoinGameEvent::class.java)
             .filter { it.game.expectationModel.isPrivateGame }
             .filter { it.game.state == GameState.Waiting || it.game.state == GameState.Starting }
             .handler { event ->
-                if (event.game.expectationModel.players.firstOrNull() == event.player.uniqueId)
+                val game = event.game
+                if (!refreshing.add(game.identifier))
                 {
-                    event.player.inventory.setItem(4, settingsItem)
-                    event.player.updateInventory()
-
-                    event.player.sendMessage("${CC.PINK}This is a Private Game! ${CC.GRAY}Right-click the comparator to configure settings.")
+                    return@handler
                 }
+
+                Schedulers
+                    .sync()
+                    .runRepeating({ task ->
+                        if (!(game.state(GameState.Waiting) || game.state(GameState.Starting)))
+                        {
+                            task.closeAndReportException()
+                            refreshing.remove(game.identifier)
+                            greeted.remove(game.identifier)
+                            return@runRepeating
+                        }
+
+                        val leaderId = game.expectationModel.players.firstOrNull()
+                            ?: return@runRepeating
+                        val leader = Bukkit.getPlayer(leaderId)
+                            ?: return@runRepeating
+
+                        var changed = false
+                        if (!settingsItem.isSimilar(leader.inventory.getItem(SETTINGS_SLOT)))
+                        {
+                            leader.inventory.setItem(SETTINGS_SLOT, settingsItem)
+                            changed = true
+                        }
+
+                        if (changed)
+                        {
+                            leader.updateInventory()
+                            if (greeted.add(game.identifier))
+                            {
+                                leader.sendMessage("${CC.PINK}This is a Private Game! ${CC.GRAY}Right-click the comparator to configure settings and force start.")
+                            }
+                        }
+                    }, 0L, 20L)
+                    .bindWith(game)
             }
             .bindWith(plugin)
 
@@ -101,9 +141,18 @@ object PrivateGamesHotbarService
                 }
 
                 // Get game type from minigame lifecycle
-                val gameType = game.miniGameLifecycle?.let {
+                val typeId = game.miniGameLifecycle?.let {
                     game.flagMetaData(gg.tropic.practice.kit.feature.FeatureFlag.MiniGameType, "id")
                 } ?: "default"
+
+               val kitId = game.expectationModel.kitId
+                val gameType = if (PrivateGameSettingsRegistry.getSettingsFor(kitId).isNotEmpty())
+                {
+                    kitId
+                } else
+                {
+                    typeId
+                }
 
                 PrivateGameSettingsMenu(game, gameType).openMenu(event.player)
             }

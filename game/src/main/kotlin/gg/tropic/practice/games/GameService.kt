@@ -1564,7 +1564,8 @@ object GameService
 
                 if (game.ensurePlaying())
                 {
-                    val team = game.getTeamOf(it.player)
+                    val team = game.getNullableTeam(it.player)
+                        ?: return@handler
                     val noAlive = if (team.players.size > 1)
                         team.nonSpectators().isEmpty() else true
 
@@ -1606,7 +1607,7 @@ object GameService
                                 }
                         } else
                         {
-                            game.getTeamOf(it.player).players -= it.player.uniqueId
+                            team.players -= it.player.uniqueId
                         }
                     }
                 } else
@@ -1681,12 +1682,13 @@ object GameService
                 if (damagerGame.expectation == game.expectation)
                 {
                     val damagerTeam = game
-                        .getTeamOf(((event.damager as FishHook).shooter) as Player)
+                        .getNullableTeam(((event.damager as FishHook).shooter) as Player)
 
                     val team = game
-                        .getTeamOf(event.entity as Player)
+                        .getNullableTeam(event.entity as Player)
 
-                    if (damagerTeam.teamIdentifier == team.teamIdentifier && !game.shouldAllowFriendlyFire)
+                    if (damagerTeam != null && team != null &&
+                        damagerTeam.teamIdentifier == team.teamIdentifier && !game.shouldAllowFriendlyFire)
                     {
                         event.isCancelled = true
                         return@handler

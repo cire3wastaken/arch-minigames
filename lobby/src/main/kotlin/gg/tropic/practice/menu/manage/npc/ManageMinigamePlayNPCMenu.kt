@@ -38,13 +38,24 @@ class ManageMinigamePlayNPCMenu(
         ),
         11 to editString(
             PracticeConfigurationService,
-            title = "Associated Game Mode",
+            title = "Associated Game Mode(s)",
             material = XMaterial.NAME_TAG,
             getter = {
                 local().playNPCs[index].associatedGameMode
             },
             setter = {
                 local().playNPCs[index].associatedGameMode = it
+            }
+        ),
+        13 to editString(
+            PracticeConfigurationService,
+            title = "Group Display Name",
+            material = XMaterial.OAK_SIGN,
+            getter = {
+                local().playNPCs[index].displayName
+            },
+            setter = {
+                local().playNPCs[index].displayName = it
             }
         ),
         16 to RemoveButton {

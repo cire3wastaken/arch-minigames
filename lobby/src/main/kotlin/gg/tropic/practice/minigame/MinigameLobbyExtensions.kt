@@ -5,11 +5,12 @@ import gg.scala.basics.plugin.settings.defaults.values.StateSettingValue
 import gg.scala.commons.playerstatus.isVirtuallyInvisibleToSomeExtent
 import gg.scala.staff.ScalaStaffPlugin
 import gg.tropic.practice.configuration.PracticeConfigurationService
-import gg.tropic.practice.kit.KitService
+import gg.tropic.practice.kit.findKitAcrossStores
 import gg.tropic.practice.minigame.menu.MinigameMapSelectorMenu
 import gg.tropic.practice.player.LobbyPlayerService
 import gg.tropic.practice.player.PlayerState
 import gg.tropic.practice.provider.MiniProviderVersion
+import gg.tropic.practice.queue.QueueIDParser
 import gg.tropic.practice.queue.QueueService
 import net.evilblock.cubed.menu.Button
 import net.evilblock.cubed.util.CC
@@ -23,7 +24,17 @@ private const val MIN_MODERN_PROTOCOL = 335 // 1.12
  * @author Subham
  * @since 6/28/25
  */
-fun MiniGameModeMetadata.joinGame(player: Player, configuration: MiniGameQueueConfiguration? = null)
+fun MiniGameModeMetadata.joinGame(player: Player, configuration: MiniGameQueueConfiguration? = null) =
+    joinMinigameQueue(player, queueId, displayName, mode.providerVersion, configuration)
+
+
+fun joinMinigameQueue(
+    player: Player,
+    queueId: String,
+    displayName: String,
+    providerVersion: MiniProviderVersion,
+    configuration: MiniGameQueueConfiguration? = null
+)
 {
     val lobbyPlayer = LobbyPlayerService
         .find(player.uniqueId)
@@ -51,7 +62,7 @@ fun MiniGameModeMetadata.joinGame(player: Player, configuration: MiniGameQueueCo
         }
     }
 
-    if (mode.providerVersion == MiniProviderVersion.MODERN)
+    if (providerVersion == MiniProviderVersion.MODERN)
     {
         val protocol = MinecraftProtocol.getPlayerVersion(player)
         if (protocol in 1 until MIN_MODERN_PROTOCOL)
@@ -61,8 +72,8 @@ fun MiniGameModeMetadata.joinGame(player: Player, configuration: MiniGameQueueCo
         }
     }
 
-    val queueId = toQueueId()
-    val kit = KitService.cached().kits[queueId.kitID]
+    val parsedQueueId = QueueIDParser.parseDetailed(queueId)
+    val kit = findKitAcrossStores(parsedQueueId.kitID)
         ?: return run {
             player.sendMessage("${CC.RED}This mode is unavailable!")
         }
@@ -89,7 +100,7 @@ fun MiniGameModeMetadata.joinGame(player: Player, configuration: MiniGameQueueCo
         }
     }
 
-    QueueService.joinQueue(kit, queueId.queueType, queueId.teamSize, player, finalConfiguration)
+    QueueService.joinQueue(kit, parsedQueueId.queueType, parsedQueueId.teamSize, player, finalConfiguration)
 
     val messagePrefix = if (finalConfiguration?.isPrivateGame == true)
         "${CC.LIGHT_PURPLE}Creating a private"

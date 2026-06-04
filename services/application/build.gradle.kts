@@ -12,15 +12,15 @@ dependencies {
     implementation(project(":services:hosted-world-gateway"))
     implementation(project(":services:application:api"))
 
-    implementation(project(":minigames:skywars-shared"))
-    implementation(project(":minigames:miniwalls-shared"))
-    implementation(project(":minigames:hunger-games-shared"))
+    implementation(project(":arcadegames:skywars-shared"))
+    implementation(project(":arcadegames:miniwalls-shared"))
+    implementation(project(":arcadegames:hunger-games-shared"))
     implementation(project(":persistentgames:housing-api"))
     implementation(project(":persistentgames:prison-shared"))
     implementation(project(":minigames:bedwars-shared"))
-    implementation(project(":minigames:pof-shared"))
+    implementation(project(":arcadegames:pof-shared"))
     implementation(project(":microgames:bridging-api"))
-    implementation(project(":microgames:events-api"))
+    implementation(project(":arcadegames:arcade-api"))
 
     implementation("org.apache.commons:commons-lang3:3.14.0")
 

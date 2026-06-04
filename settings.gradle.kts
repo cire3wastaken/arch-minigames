@@ -18,10 +18,6 @@ include(
     "public-api:pubapi-akers",
     "public-api:pubapi-pigdi",
 
-    "microgames:events",
-    "microgames:events-api",
-    "microgames:events-lobby",
-
     "persistentgames:housing",
     "persistentgames:housing-api",
     "persistentgames:housing-lobby",
@@ -37,6 +33,22 @@ include(
     "microgames:bridging",
     "microgames:bridging-api",
 
+    "arcadegames:arcade-api",
+    "arcadegames:arcade",
+    "arcadegames:arcade-lobby",
+
+    "arcadegames:skywars",
+    "arcadegames:skywars-shared",
+
+    "arcadegames:miniwalls",
+    "arcadegames:miniwalls-shared",
+
+    "arcadegames:hunger-games",
+    "arcadegames:hunger-games-shared",
+
+    "arcadegames:pof",
+    "arcadegames:pof-shared",
+
     "services:application",
     "services:replications",
     "services:queue",
@@ -46,25 +58,9 @@ include(
     "services:application:api",
     "services:games:game-manager",
 
-    "minigames:skywars",
-    "minigames:skywars-lobby",
-    "minigames:skywars-shared",
-
     "minigames:bedwars",
     "minigames:bedwars-lobby",
     "minigames:bedwars-shared",
-
-    "minigames:miniwalls",
-    "minigames:miniwalls-lobby",
-    "minigames:miniwalls-shared",
-
-    "minigames:hunger-games",
-    "minigames:hunger-games-lobby",
-    "minigames:hunger-games-shared",
-
-    "minigames:pof",
-    "minigames:pof-lobby",
-    "minigames:pof-shared",
 
     "minigames:duels-modern-lobby",
 

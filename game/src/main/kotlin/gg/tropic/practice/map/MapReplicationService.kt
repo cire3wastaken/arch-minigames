@@ -14,7 +14,7 @@ import gg.tropic.practice.games.GameState
 import gg.tropic.practice.games.bots.deleteBotMetadataOfPlayer
 import gg.tropic.practice.games.bots.getBotMetdataOfPlayer
 import gg.tropic.practice.games.robot.RobotGameLifecycle
-import gg.tropic.practice.kit.KitService
+import gg.tropic.practice.kit.findKitAcrossStores
 import gg.tropic.practice.kit.feature.FeatureFlag
 import gg.tropic.practice.kit.feature.GameLifecycle
 import gg.tropic.practice.map.metadata.impl.MapPortalMetadata
@@ -214,8 +214,7 @@ object MapReplicationService
 
     fun buildGameResources(expectation: GameExpectation): GenerationResult
     {
-        val kit = KitService.cached()
-            .kits[expectation.kitId]
+        val kit = findKitAcrossStores(expectation.kitId)
             ?: return GenerationResult(
                 status = ReplicationResultStatus.FAILED,
                 "System could not find the kit for your match"

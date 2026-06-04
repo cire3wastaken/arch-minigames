@@ -77,6 +77,12 @@ object MinigameLobby
     fun isMinigameLobby() = customizer != null
     fun isMainLobby() = isMainLobby
 
+    var competitiveResolver: ((Player) -> MinigameCompetitiveCustomizer?)? = null
+    var holographicStatsEnabled: () -> Boolean = { customizer is MinigameCompetitiveCustomizer }
+
+    fun competitiveFor(player: Player): MinigameCompetitiveCustomizer? =
+        competitiveResolver?.invoke(player) ?: (customizer as? MinigameCompetitiveCustomizer)
+
     var globalPlayerCount = 0
     var lobbies = mapOf<String, TrackedLobbyInstance>()
 
@@ -216,9 +222,7 @@ object MinigameLobby
                             return@forEach
                         }
 
-                        entity.updateLines(
-                            entity.modeMetadata.toNPCHeader()
-                        )
+                        entity.updateLines(entity.currentHeader())
                     }
             }, 0L, 10L)
 
@@ -604,7 +608,7 @@ object MinigameLobby
                 }
         }
 
-        if (customizer() is MinigameCompetitiveCustomizer)
+        if (holographicStatsEnabled())
         {
             CoreHolographicStatsHologramEntity(
                 PracticeConfigurationService.local().coreHolographicStatsPosition
