@@ -5,7 +5,6 @@ import gg.tropic.practice.map.metadata.scanner.MetadataScannerUtilities
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.block.BlockFace
-import org.bukkit.material.Sign
 import java.util.LinkedList
 
 /**
@@ -65,17 +64,15 @@ val inverseValuesMappings = manualMappings.map { it.value to it.key }
 
 fun List<MapSignMetadataModel>.normalize(world: World) = map { model ->
     val location = model.location.toLocation(world).clone()
-    val block = model.location.toLocation(world).block
+    val block = location.block
 
     val facing = SignFacingResolver.facingOf(block)
-    if (facing == null)
+    if (facing != null)
     {
-        return@map location.toPosition()
+        manualMappings[facing]?.let { location.yaw = it }
     }
 
-    location.yaw = manualMappings[facing] ?: return@map location.toPosition()
-
-    location.z += 0.500F
     location.x += 0.500F
+    location.z += 0.500F
     return@map location.toPosition()
 }
