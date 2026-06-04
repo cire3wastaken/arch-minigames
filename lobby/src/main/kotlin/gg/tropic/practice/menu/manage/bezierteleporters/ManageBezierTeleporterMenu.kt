@@ -87,7 +87,7 @@ class ManageBezierTeleporterMenu(
         ),
         16 to RemoveButton {
             PracticeConfigurationService.editAndSave {
-                local().playNPCs.removeAt(index)
+                local().bezierTeleporters.removeAt(index)
             }
 
             player.sendMessage("${CC.RED}Removed!")
