@@ -6,6 +6,7 @@ import gg.tropic.practice.games.GameService
 import gg.tropic.practice.games.GameState
 import mc.arch.minigames.arcade.ArcadeMode
 import me.lucko.helper.Events
+import me.lucko.helper.Schedulers
 import net.evilblock.cubed.util.CC
 import org.bukkit.entity.Player
 import org.bukkit.event.block.Action
@@ -79,26 +80,6 @@ object ArcadeBroadcastTrigger
                 player.sendMessage("${CC.RED}This game can't be broadcasted.")
             }
 
-        val gameDisplay = ArcadeBroadcastPolicy.displayNameFor(queueId)
-            ?: ArcadeMode.entries.firstOrNull { it.queueId == queueId }?.displayName
-            ?: return run {
-                player.sendMessage("${CC.RED}This isn't an Arcade game.")
-            }
-
-        val remainingSeconds = ArcadeBroadcastPolicy.remainingCooldownSeconds(player.uniqueId)
-        if (remainingSeconds > 0L)
-        {
-            player.sendMessage("${CC.RED}You can broadcast again in ${formatCooldown(remainingSeconds)}.")
-            return
-        }
-
-        val remainingQueueSeconds = ArcadeBroadcastPolicy.remainingQueueCooldownSeconds(queueId)
-        if (remainingQueueSeconds > 0L)
-        {
-            player.sendMessage("${CC.RED}${gameDisplay} was just broadcasted. Try again in ${remainingQueueSeconds}s.")
-            return
-        }
-
         val playerCooldownSeconds = if (player.hasPermission(BYPASS_PERMISSION))
         {
             ArcadeBroadcastPolicy.BYPASS_PLAYER_COOLDOWN_SECONDS
@@ -107,19 +88,41 @@ object ArcadeBroadcastTrigger
             ArcadeBroadcastPolicy.DEFAULT_PLAYER_COOLDOWN_SECONDS
         }
 
-        ArcadeBroadcastPolicy.startCooldown(player.uniqueId, playerCooldownSeconds)
-        ArcadeBroadcastPolicy.startQueueCooldown(queueId)
+        Schedulers.async().run {
+            val gameDisplay = ArcadeBroadcastPolicy.displayNameFor(queueId)
+                ?: ArcadeMode.entries.firstOrNull { it.queueId == queueId }?.displayName
+                ?: return@run run {
+                    player.sendMessage("${CC.RED}This isn't an Arcade game.")
+                }
 
-        val broadcasterName = PlayerHandler.find(player.uniqueId)
-            ?.getColoredName(prefixIncluded = true)
-            ?: player.name
+            val remainingSeconds = ArcadeBroadcastPolicy.remainingCooldownSeconds(player.uniqueId)
+            if (remainingSeconds > 0L)
+            {
+                player.sendMessage("${CC.RED}You can broadcast again in ${formatCooldown(remainingSeconds)}.")
+                return@run
+            }
 
-        ArcadeBroadcast.publish(
-            broadcasterName = broadcasterName,
-            gameDisplay = gameDisplay
-        )
+            val remainingQueueSeconds = ArcadeBroadcastPolicy.remainingQueueCooldownSeconds(queueId)
+            if (remainingQueueSeconds > 0L)
+            {
+                player.sendMessage("${CC.RED}${gameDisplay} was just broadcasted. Try again in ${remainingQueueSeconds}s.")
+                return@run
+            }
 
-        player.sendMessage("${CC.GREEN}Broadcasted your ${gameDisplay} queue!")
+            ArcadeBroadcastPolicy.startCooldown(player.uniqueId, playerCooldownSeconds)
+            ArcadeBroadcastPolicy.startQueueCooldown(queueId)
+
+            val broadcasterName = PlayerHandler.find(player.uniqueId)
+                ?.getColoredName(prefixIncluded = true)
+                ?: player.name
+
+            ArcadeBroadcast.publish(
+                broadcasterName = broadcasterName,
+                gameDisplay = gameDisplay
+            )
+
+            player.sendMessage("${CC.GREEN}Broadcasted your ${gameDisplay} queue!")
+        }
     }
 
     private fun formatCooldown(seconds: Long): String =
