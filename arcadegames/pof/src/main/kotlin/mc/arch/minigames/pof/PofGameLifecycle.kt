@@ -797,6 +797,7 @@ class PofGameLifecycle(
             player.sendMessage("${CC.B_AQUA}Pillar of Fortune has started! ${CC.GRAY}Random loot drops every ${CC.WHITE}5${CC.GRAY}s — last one standing wins!")
         }
 
+        val lootRound = AtomicInteger(0)
         Schedulers.sync().runRepeating({ task ->
             if (gameEnded.get())
             {
@@ -804,13 +805,19 @@ class PofGameLifecycle(
                 return@runRepeating
             }
 
+            val round = lootRound.incrementAndGet()
             val rareUnlocked = System.currentTimeMillis() - gameStartTime >= effectiveRareUnlockMs
             aliveResources().forEach { resources ->
                 val player = resources.toPlayer() ?: return@forEach
-                val item = lootTable.roll(rareUnlocked)
-                val leftover = player.inventory.addItem(item)
-                leftover.values.forEach { drop ->
-                    player.world.dropItemNaturally(player.location, drop)
+                val items = buildList {
+                    add(lootTable.roll(rareUnlocked))
+                    if (round == 3) add(lootTable.rollBlock())
+                }
+                items.forEach { item ->
+                    val leftover = player.inventory.addItem(item)
+                    leftover.values.forEach { drop ->
+                        player.world.dropItemNaturally(player.location, drop)
+                    }
                 }
             }
         }, effectiveLootIntervalTicks, effectiveLootIntervalTicks).bindWith(this)

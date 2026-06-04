@@ -28,6 +28,7 @@ abstract class PofLootTable
     private val uncommon: List<ItemStack> by lazy { build(uncommonSpec) + uncommonExtras }
     private val rare: List<ItemStack> by lazy { build(rareSpec) + rareExtras }
     private val junk: List<ItemStack> by lazy { build(junkSpec) }
+    private val blocks: List<ItemStack> by lazy { common.filter { it.type.isBlock } }
 
     fun roll(rareUnlocked: Boolean = true): ItemStack
     {
@@ -41,7 +42,22 @@ abstract class PofLootTable
         }
 
         if (pool.isEmpty()) return ItemStack(Material.STICK)
-        return pool.random().clone()
+        return pool.random().clone().also(::applyRollAdjustments)
+    }
+
+    fun rollBlock(): ItemStack
+    {
+        if (blocks.isEmpty()) return ItemStack(Material.COBBLESTONE, 4)
+        return blocks.random().clone()
+    }
+
+    private fun applyRollAdjustments(item: ItemStack)
+    {
+        if (item.type == Material.FISHING_ROD)
+        {
+            val usesRemaining = ThreadLocalRandom.current().nextInt(1, 3)
+            item.durability = (item.type.maxDurability - usesRemaining).toShort()
+        }
     }
 
     protected fun build(spec: List<Pair<XMaterial, Int>>): List<ItemStack> = spec

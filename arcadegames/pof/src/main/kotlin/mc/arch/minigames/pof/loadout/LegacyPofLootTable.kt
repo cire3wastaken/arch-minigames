@@ -83,8 +83,8 @@ object LegacyPofLootTable : PofLootTable()
         XMaterial.ARROW to 16,
         XMaterial.OBSIDIAN to 8,
         XMaterial.LAVA_BUCKET to 1,
-        XMaterial.EGG to 2,
-        XMaterial.SNOWBALL to 4
+        XMaterial.EGG to 1,
+        XMaterial.SNOWBALL to 1
     )
 
     override val rareExtras: List<ItemStack> = listOf(
