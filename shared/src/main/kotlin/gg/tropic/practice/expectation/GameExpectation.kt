@@ -33,6 +33,7 @@ data class GameExpectation(
      * and optional game-specific settings.
      */
     val isPrivateGame: Boolean = false,
-    val privateGameSettings: PrivateGameSettings? = null
+    val privateGameSettings: PrivateGameSettings? = null,
+    val freeForAll: Boolean = false
 )
 

@@ -465,6 +465,10 @@ object GameService
                 {
                     game.complete(killer)
                 }
+                else if (game.isFreeForAll && team.nonSpectators().size <= 1)
+                {
+                    game.complete(team)
+                }
             }
 
             GameLifecycle.RoundBound ->
@@ -1581,6 +1585,11 @@ object GameService
                         } else
                         {
                             team.players -= it.player.uniqueId
+
+                            if (game.isFreeForAll && team.nonSpectators().size <= 1)
+                            {
+                                game.complete(team)
+                            }
                         }
                     } else
                     {
@@ -1679,7 +1688,7 @@ object GameService
                         .getNullableTeam(event.entity as Player)
 
                     if (damagerTeam != null && team != null &&
-                        damagerTeam.teamIdentifier == team.teamIdentifier)
+                        damagerTeam.teamIdentifier == team.teamIdentifier && !game.shouldAllowFriendlyFire)
                     {
                         event.isCancelled = true
                         return@handler
@@ -1733,7 +1742,7 @@ object GameService
                     val team = game
                         .getTeamOf(event.entity as Player)
 
-                    if (damagerTeam.teamIdentifier == team.teamIdentifier)
+                    if (damagerTeam.teamIdentifier == team.teamIdentifier && !game.shouldAllowFriendlyFire)
                     {
                         event.isCancelled = true
                         return@handler

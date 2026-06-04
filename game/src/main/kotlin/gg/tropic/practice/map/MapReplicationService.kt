@@ -260,7 +260,13 @@ object MapReplicationService
                 expectation = expectation,
                 kit = kit,
                 arenaWorld = scheduledMap.world
-            )
+            ).apply {
+                if (expectation.freeForAll)
+                {
+                    isFreeForAll = true
+                    shouldAllowFriendlyFire = true
+                }
+            }
         } else
         {
             miniGameOrchestrator?.construct(scheduledMap.world, kit, expectation)
