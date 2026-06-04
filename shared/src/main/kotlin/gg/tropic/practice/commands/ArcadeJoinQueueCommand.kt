@@ -20,17 +20,14 @@ object ArcadeJoinQueueCommand : ScalaCommand()
     @CommandAlias("arcadejoinqueue")
     fun onJoin(player: ScalaPlayer, queueId: String)
     {
-        val mode = PracticeConfigurationService
-            .minigameType().provide()
-            .gameModes.values
-            .firstOrNull { it.queueId == queueId }
-            ?: return run {
-                player.sendMessage("${CC.RED}That Arcade queue is no longer available.")
-            }
-
         val bukkit = player.bukkit()
 
-        if (mode.mode.providerVersion == MiniProviderVersion.MODERN)
+        val mode = PracticeConfigurationService
+            .minigameTypeOrNull()?.provide()
+            ?.gameModes?.values
+            ?.firstOrNull { it.queueId == queueId }
+
+        if (mode != null && mode.mode.providerVersion == MiniProviderVersion.MODERN)
         {
             val protocol = MinecraftProtocol.getPlayerVersion(bukkit)
             if (protocol in 1 until MIN_MODERN_PROTOCOL)
@@ -40,10 +37,10 @@ object ArcadeJoinQueueCommand : ScalaCommand()
             }
         }
 
-        val parsedQueueId = QueueIDParser.parseDetailed(mode.queueId)
+        val parsedQueueId = QueueIDParser.parseDetailed(queueId)
         val kit = findKitAcrossStores(parsedQueueId.kitID)
             ?: return run {
-                bukkit.sendMessage("${CC.RED}This mode is unavailable!")
+                bukkit.sendMessage("${CC.RED}That Arcade queue is no longer available.")
             }
 
         QueueCommunications.joinQueue(
@@ -53,6 +50,6 @@ object ArcadeJoinQueueCommand : ScalaCommand()
             player = bukkit
         )
 
-        bukkit.sendMessage("${CC.GREEN}Joining a ${mode.displayName} game...")
+        bukkit.sendMessage("${CC.GREEN}Joining a ${mode?.displayName ?: kit.displayName} game...")
     }
 }
