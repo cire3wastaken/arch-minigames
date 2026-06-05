@@ -1,7 +1,9 @@
 package gg.tropic.practice.menu.editor
 
 import gg.tropic.practice.extensions.deepClone
+import gg.tropic.practice.isModernDuelsServer
 import gg.tropic.practice.kit.Kit
+import gg.tropic.practice.kit.feature.FeatureFlag
 import gg.tropic.practice.menu.TemplateKitMenu
 import gg.tropic.practice.profile.PracticeProfile
 import gg.tropic.practice.profile.loadout.Loadout
@@ -22,7 +24,12 @@ class EditorKitSelectionMenu(
 
     override fun shouldIncludeKitDescription() = false
 
-    override fun filterDisplayOfKit(player: Player, kit: Kit): Boolean = true
+    override fun filterDisplayOfKit(player: Player, kit: Kit): Boolean
+    {
+        val isModernKit = kit.features(FeatureFlag.Modern)
+        return if (isModernDuelsServer()) isModernKit else !isModernKit
+    }
+
     override fun itemTitleFor(player: Player, kit: Kit) = "${CC.B_PRI}${kit.displayName}"
 
     private val cursorPositions = mutableMapOf<String, Int>()
