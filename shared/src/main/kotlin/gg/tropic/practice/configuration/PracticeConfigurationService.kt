@@ -157,6 +157,7 @@ object PracticeConfigurationService : DataSyncService<PracticeConfiguration>()
     }
 
     fun minigameType() = typeProvider!!
+    fun minigameTypeOrNull() = typeProvider
     fun local() = cached().local()
 
     override fun postReload()

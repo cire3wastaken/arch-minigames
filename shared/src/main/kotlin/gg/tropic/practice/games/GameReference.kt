@@ -27,3 +27,7 @@ data class GameReference(
     val miniGameType: String? = null,
     val isPrivateGame: Boolean = false
 )
+
+fun GameReference.livePlayerCount(): Int =
+    if (state == GameState.Completed) 0
+    else onlinePlayers ?: players.size

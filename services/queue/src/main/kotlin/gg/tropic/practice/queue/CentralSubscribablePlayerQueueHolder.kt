@@ -1,5 +1,6 @@
 package gg.tropic.practice.queue
 
+import gg.tropic.practice.games.livePlayerCount
 import gg.tropic.practice.games.manager.GameManager
 import gg.tropic.practice.metadata.Metadata
 import gg.tropic.practice.persistence.RedisShared
@@ -199,7 +200,7 @@ class CentralSubscribablePlayerQueueHolder : Runnable
         val games = GameManager.allGames()
         playerQueues.values.forEach { queue ->
             val gamesMatchingQueueID = games.filter { it.queueId == queue.id }
-            val playersInGame = gamesMatchingQueueID.sumOf { it.onlinePlayers ?: it.players.size }
+            val playersInGame = gamesMatchingQueueID.sumOf { it.livePlayerCount() }
 
             Metadata.writer().write(
                 "queue:users-queued:${queue.id}",
