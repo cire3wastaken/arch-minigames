@@ -1,6 +1,7 @@
 package mc.arch.minigames.arcade.lobby.menu
 
 import com.cryptomorin.xseries.XMaterial
+import gg.tropic.practice.games.livePlayerCount
 import gg.tropic.practice.metadata.SystemMetadataService
 import gg.tropic.practice.minigame.joinMinigameQueue
 import net.evilblock.cubed.menu.Button
@@ -72,5 +73,5 @@ class ArcadeGameMenu(
     private fun currentlyPlaying(mode: ArcadeCardMode): Int = SystemMetadataService
         .allGames()
         .filter { it.queueId == mode.queueId }
-        .sumOf { it.onlinePlayers ?: 0 }
+        .sumOf { it.livePlayerCount() }
 }

@@ -1,5 +1,6 @@
 package mc.arch.minigames.arcade.lobby.menu
 
+import gg.tropic.practice.games.livePlayerCount
 import gg.tropic.practice.metadata.SystemMetadataService
 import net.evilblock.cubed.menu.Button
 import net.evilblock.cubed.menu.Menu
@@ -20,7 +21,7 @@ class ArcadeGameSelectorMenu : Menu("Arcade Games")
         val playing = SystemMetadataService
             .allGames()
             .filter { it.queueId in modeQueueIds }
-            .sumOf { it.players.size }
+            .sumOf { it.livePlayerCount() }
 
         return ItemBuilder
             .of(card.icon)

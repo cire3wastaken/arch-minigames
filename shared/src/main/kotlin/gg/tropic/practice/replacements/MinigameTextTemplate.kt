@@ -3,6 +3,7 @@ package gg.tropic.practice.replacements
 import gg.scala.commons.agnostic.sync.server.ServerContainer
 import gg.scala.commons.agnostic.sync.server.impl.GameServer
 import gg.tropic.practice.messaging.ExternalPlayerCountApiSubmissionService
+import gg.tropic.practice.games.livePlayerCount
 import gg.tropic.practice.metadata.SystemMetadataService
 import net.evilblock.cubed.util.math.Numbers
 
@@ -38,7 +39,7 @@ fun String.toTemplatePlayerCounts() = template { key, data ->
                     .sumOf { it.getPlayersCount() ?: 0 } +
                     SystemMetadataService.allGames()
                         .filter { (minigameID == "duels" && it.miniGameType == null) || it.miniGameType == minigameID }
-                        .sumOf { it.onlinePlayers ?: 0 }
+                        .sumOf { it.livePlayerCount() }
             )
         }
 
@@ -51,7 +52,7 @@ fun String.toTemplatePlayerCounts() = template { key, data ->
                     .sumOf { it.getPlayersCount() ?: 0 } +
                     SystemMetadataService.allGames()
                         .filter { it.miniGameType in arcadeTypes }
-                        .sumOf { it.onlinePlayers ?: 0 }
+                        .sumOf { it.livePlayerCount() }
             )
         }
 

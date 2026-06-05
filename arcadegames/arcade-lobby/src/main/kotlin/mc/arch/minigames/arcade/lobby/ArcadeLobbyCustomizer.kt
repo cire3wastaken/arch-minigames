@@ -2,6 +2,7 @@ package mc.arch.minigames.arcade.lobby
 
 import gg.scala.flavor.service.Configure
 import gg.scala.flavor.service.Service
+import gg.tropic.practice.games.livePlayerCount
 import gg.tropic.practice.metadata.SystemMetadataService
 import gg.tropic.practice.minigame.MiniGameTypeProvider
 import gg.tropic.practice.minigame.MinigameLobby
@@ -79,7 +80,7 @@ object ArcadeLobbyCustomizer : MinigameLobbyCustomizer, MinigameLobbyScoreboardP
         val playing = SystemMetadataService
             .allGames()
             .filter { it.miniGameType in arcadeTypeIds }
-            .sumOf { it.players.size }
+            .sumOf { it.livePlayerCount() }
 
         return listOf(
             "${CC.D_PURPLE}${Constants.THIN_VERTICAL_LINE} ${CC.GRAY}Online: ${CC.WHITE}${Numbers.format(inLobby + playing)}",
