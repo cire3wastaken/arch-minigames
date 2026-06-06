@@ -3,6 +3,7 @@ package mc.arch.minigames.duelsmodern.lobby
 import gg.scala.commons.ExtendedScalaPlugin
 import gg.scala.commons.annotations.container.ContainerEnable
 import gg.scala.commons.core.plugin.*
+import net.evilblock.cubed.serialize.ItemStackAdapter
 
 /**
  * @author ArchMC
@@ -23,6 +24,9 @@ class DuelsModernLobby : ExtendedScalaPlugin()
     @ContainerEnable
     fun containerEnable()
     {
+        // legacy compat
+        ItemStackAdapter.writeModernToLegacy = true
+        // fuck these skulls
         MojangProfileLookupLogFilter.install()
     }
 }
