@@ -72,12 +72,13 @@ class MiniGameJoinIntoGameHandler : RPCHandler<JoinIntoGameRequest, JoinIntoGame
                 status = JoinIntoGameStatus.FAILED_ALREADY_STARTED
             } else
             {
-                // Guard: reject if any player is already in a different game on this server
                 val alreadyInGame = request.players.filter { playerId ->
-                    GameService.gameMappings.values.any { existingGame ->
-                        existingGame.identifier != request.game.uniqueId &&
-                            playerId in existingGame.toPlayers()
-                    }
+                    Bukkit.getPlayer(playerId) != null &&
+                        GameService.gameMappings.values.any { existingGame ->
+                            existingGame.identifier != request.game.uniqueId &&
+                                existingGame.state != GameState.Completed &&
+                                playerId in existingGame.toPlayers()
+                        }
                 }
 
                 if (alreadyInGame.isNotEmpty())
