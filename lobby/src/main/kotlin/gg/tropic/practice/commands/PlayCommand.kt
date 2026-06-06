@@ -38,18 +38,16 @@ object PlayCommand : ScalaCommand()
             throw ConditionFailedException("You cannot do this right now!")
         }
 
-        return CompletableFuture.runAsync {
-            BotGameMetadata(
-                difficulty,
-                null,
-                kit.id,
-                null,
-                botInstances = setOf(
-                    Globals.POSSIBLE_PLAYER_BOT_UNIQUE_IDS[0],
-                    Globals.POSSIBLE_PLAYER_BOT_UNIQUE_IDS[1]
-                )
-            ).storeForUser(player.uniqueId)
-        }.thenAccept {
+        return BotGameMetadata(
+            difficulty,
+            null,
+            kit.id,
+            null,
+            botInstances = setOf(
+                Globals.POSSIBLE_PLAYER_BOT_UNIQUE_IDS[0],
+                Globals.POSSIBLE_PLAYER_BOT_UNIQUE_IDS[1]
+            )
+        ).storeForUser(player.uniqueId).thenAccept {
             QueueService.joinQueue(kit, QueueType.Robot, 2, player.bukkit())
             Button.playNeutral(player.bukkit())
 
