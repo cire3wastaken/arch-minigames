@@ -44,12 +44,37 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
     companion object {
         // Track RPC failures per server instance
         private val instanceFailureCounts = ConcurrentHashMap<String, AtomicInteger>()
-        private const val FAILURE_THRESHOLD = 3
+        // Exclude an instance from join selection after even a single timeout (fast breaker)
+        // so we stop funneling players into an unresponsive instance immediately...
+        private const val FAILURE_THRESHOLD_EXCLUDE = 1
+        // ...but only request an actual restart once it crosses the higher threshold.
+        private const val FAILURE_THRESHOLD_RESTART = 3
         private const val FAILURE_RESET_INTERVAL_MS = 60_000L // Reset failures after 1 minute
         private val lastFailureReset = ConcurrentHashMap<String, Long>()
 
         // Track which instances we've already sent restart requests to
         private val restartRequestsSent = ConcurrentHashMap<String, Long>()
+
+        private val inFlightJoins = ConcurrentHashMap<String, AtomicInteger>()
+        private const val MAX_IN_FLIGHT_PER_INSTANCE = 2
+
+        fun incrementInFlight(serverId: String): Int =
+            inFlightJoins.computeIfAbsent(serverId) { AtomicInteger(0) }.incrementAndGet()
+
+        fun decrementInFlight(serverId: String) {
+            inFlightJoins[serverId]?.let { counter ->
+                if (counter.decrementAndGet() < 0) counter.set(0)
+            }
+        }
+
+        fun getInFlight(serverId: String): Int = inFlightJoins[serverId]?.get() ?: 0
+
+        /**
+         * True when an instance already has the max number of un-acked joins riding on it.
+         * Such instances are skipped so we don't keep hammering one that isn't replying.
+         */
+        fun isInstanceSaturated(serverId: String): Boolean =
+            getInFlight(serverId) >= MAX_IN_FLIGHT_PER_INSTANCE
 
         fun recordInstanceFailure(serverId: String) {
             val now = System.currentTimeMillis()
@@ -65,7 +90,7 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
             val failures = instanceFailureCounts.computeIfAbsent(serverId) { AtomicInteger(0) }
             val count = failures.incrementAndGet()
 
-            if (count >= FAILURE_THRESHOLD) {
+            if (count >= FAILURE_THRESHOLD_RESTART) {
                 io.sentry.Sentry.captureMessage("Instance $serverId exceeded failure threshold ($count failures)") { scope ->
                     scope.level = io.sentry.SentryLevel.ERROR
                     scope.setTag("alert_type", "instance_failure")
@@ -130,7 +155,7 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
             }
 
             val failures = instanceFailureCounts[serverId]?.get() ?: 0
-            return failures >= FAILURE_THRESHOLD
+            return failures >= FAILURE_THRESHOLD_EXCLUDE
         }
 
         fun getInstanceFailureCount(serverId: String): Int {
@@ -146,7 +171,7 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
                 .filter { (serverId, count) ->
                     val lastReset = lastFailureReset[serverId] ?: 0L
                     // Only include if not expired and exceeds threshold
-                    (now - lastReset <= FAILURE_RESET_INTERVAL_MS) && count.get() >= FAILURE_THRESHOLD
+                    (now - lastReset <= FAILURE_RESET_INTERVAL_MS) && count.get() >= FAILURE_THRESHOLD_EXCLUDE
                 }
                 .map { it.key }
                 .toSet()
@@ -195,6 +220,10 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
             .filter {
                 // FIRST: Filter out games on failing instances
                 if (it.server in failingInstances) {
+                    return@filter false
+                }
+
+                if (isInstanceSaturated(it.server)) {
                     return@filter false
                 }
 
@@ -251,17 +280,19 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
         {
             val serverId = existingGameRequiringPlayers.server
 
-            // Skip instances that have failed too many times recently
-            if (isInstanceFailing(serverId)) {
+            // Skip instances that have failed too many times recently, or that already have
+            // un-acked joins riding on them (don't keep hammering one that isn't replying).
+            if (isInstanceFailing(serverId) || isInstanceSaturated(serverId)) {
                 io.sentry.Sentry.addBreadcrumb(io.sentry.Breadcrumb().apply {
                     category = "queue.instance_skip"
-                    message = "Skipping failing instance $serverId (${getInstanceFailureCount(serverId)} failures)"
+                    message = "Skipping instance $serverId (${getInstanceFailureCount(serverId)} failures, ${getInFlight(serverId)} in flight)"
                     level = io.sentry.SentryLevel.WARNING
                 })
                 // Don't try to join, fall through to create a new game instead
             } else {
                 // NON-BLOCKING: Fire the RPC and handle result async
                 // Return entry immediately so it's removed from queue
+                incrementInFlight(serverId)
                 MiniGameRPC.joinIntoGameService
                     .call(
                         JoinIntoGameRequest(
@@ -304,11 +335,18 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
                             scope.setExtra("game_id", existingGameRequiringPlayers.uniqueId.toString())
                             scope.setExtra("failure_count", getInstanceFailureCount(serverId).toString())
                         }
-                        println("RPC failed for join into game on $serverId")
+                        val cause = (ex as? java.util.concurrent.CompletionException)?.cause ?: ex
+                        val reason = when (cause) {
+                            is java.util.concurrent.TimeoutException -> "timed out after 5s"
+                            else -> "${cause::class.simpleName}: ${cause.message}"
+                        }
+                        println("RPC failed for join into game on $serverId ($reason)")
 
                         handleJoinFailure(targetEntry, preferredRegion, map, "RPC_FAILURE")
                         null
                     }
+                    // Release the in-flight slot once the join has settled either way.
+                    .whenComplete { _, _ -> decrementInFlight(serverId) }
 
                 // Return entry immediately - it's being handled async
                 return listOf(targetEntry.data)
