@@ -335,7 +335,7 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
                             game = existingGameRequiringPlayers
                         )
                     )
-                    .orTimeout(5, TimeUnit.SECONDS)
+                    .orTimeout(9, TimeUnit.SECONDS)
                     .thenAccept { joinGameResult ->
                         if (joinGameResult.status == JoinIntoGameStatus.SUCCESS) {
                             clearJoinRetryState(targetEntry.data.leader)
@@ -375,7 +375,7 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
                         }
                         val cause = (ex as? java.util.concurrent.CompletionException)?.cause ?: ex
                         val reason = when (cause) {
-                            is java.util.concurrent.TimeoutException -> "timed out after 5s"
+                            is java.util.concurrent.TimeoutException -> "no RPC reply within deadline"
                             else -> "${cause::class.simpleName}: ${cause.message}"
                         }
                         println("RPC failed for join into game on $serverId ($reason)")

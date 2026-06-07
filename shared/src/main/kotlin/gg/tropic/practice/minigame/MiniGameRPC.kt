@@ -23,9 +23,9 @@ object MiniGameRPC
 
     val joinIntoGameService = gateway.createRPCService<JoinIntoGameRequest, JoinIntoGameResult>(
         serviceName = "join-into-game",
-        timeoutSeconds = 3L
+        timeoutSeconds = 8L
     )
-    
+
     val restartInstanceService = gateway.createRPCService<RestartInstanceRequest, RestartInstanceResponse>(
         serviceName = "restart-instance",
         timeoutSeconds = 5L
