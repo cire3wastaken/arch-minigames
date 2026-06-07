@@ -52,7 +52,9 @@ class ExtraContentSelectionMenu(
             Tasks.sync {
                 contentsMenu.handleLoadoutSave(player)
                     .thenRun {
-                        contentsMenu.openMenu(player)
+                        Tasks.sync {
+                            contentsMenu.openMenu(player)
+                        }
                     }
             }
         }

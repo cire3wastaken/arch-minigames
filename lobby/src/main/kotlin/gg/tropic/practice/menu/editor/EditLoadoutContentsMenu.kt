@@ -33,6 +33,7 @@ class EditLoadoutContentsMenu(
     }
 
     private var movingToExtendedContentMenu = false
+    private var editingName = false
     override fun getButtons(player: Player): Map<Int, Button>
     {
         val buttons = mutableMapOf<Int, Button>()
@@ -50,8 +51,10 @@ class EditLoadoutContentsMenu(
             )
             .toButton { _, _ ->
                 handleLoadoutSave(player).thenRun {
-                    Button.playNeutral(player)
-                    handleBackwardsMenuNavigation(player)
+                    Tasks.sync {
+                        Button.playNeutral(player)
+                        handleBackwardsMenuNavigation(player)
+                    }
                 }
             }
 
@@ -111,6 +114,8 @@ class EditLoadoutContentsMenu(
             )
             .toButton { _, _ ->
                 Button.playNeutral(player)
+                editingName = true
+                handleLoadoutSave(player)
                 player.closeInventory()
                 player.sendMessage("${CC.GREEN}Type the new name of the loadout in chat.")
                 player.sendMessage("${CC.GREEN}Type ${CC.RED}cancel ${CC.GREEN}to cancel.")
@@ -121,21 +126,23 @@ class EditLoadoutContentsMenu(
                         if (input.equals("cancel", true))
                         {
                             player.sendMessage("${CC.RED}You have cancelled the name edit.")
-                            openMenu(player)
+                            Tasks.sync { openMenu(player) }
                             return@acceptInput
                         }
 
                         if (ChatMessageFilterHandler.handleMessageFilter(player, input, reportToStaff = false))
                         {
                             player.sendMessage("${CC.RED}Your custom loadout name contains a word that is not allowed!")
-                            openMenu(player)
+                            Tasks.sync { openMenu(player) }
                             return@acceptInput
                         }
 
                         loadout.name = ChatColor.translateAlternateColorCodes('&', input)
                         practiceProfile.save().thenRun {
-                            player.sendMessage("${CC.GREEN}You have changed the name of this loadout to: ${loadout.name}${CC.GREEN}.")
-                            openMenu(player)
+                            Tasks.sync {
+                                player.sendMessage("${CC.GREEN}You have changed the name of this loadout to: ${loadout.name}${CC.GREEN}.")
+                                openMenu(player)
+                            }
                         }
                     }
                     .start(player)
@@ -160,11 +167,13 @@ class EditLoadoutContentsMenu(
                             ?.remove(loadout)
 
                         practiceProfile.save().thenRun {
-                            player.sendMessage(
-                                "${CC.GREEN}You have deleted your ${CC.YELLOW}${loadout.name} ${CC.GREEN}loadout for the kit ${CC.YELLOW}${kit.displayName}${CC.GREEN}."
-                            )
+                            Tasks.sync {
+                                player.sendMessage(
+                                    "${CC.GREEN}You have deleted your ${CC.YELLOW}${loadout.name} ${CC.GREEN}loadout for the kit ${CC.YELLOW}${kit.displayName}${CC.GREEN}."
+                                )
 
-                            EditorKitSelectionMenu(player, practiceProfile).openMenu(player)
+                                EditorKitSelectionMenu(player, practiceProfile).openMenu(player)
+                            }
                         }
                     } else
                     {
@@ -188,8 +197,10 @@ class EditLoadoutContentsMenu(
                     movingToExtendedContentMenu = true
 
                     handleLoadoutSave(player).thenRun {
-                        Button.playNeutral(player)
-                        ExtraContentSelectionMenu(kit, this).openMenu(player)
+                        Tasks.sync {
+                            Button.playNeutral(player)
+                            ExtraContentSelectionMenu(kit, this).openMenu(player)
+                        }
                     }
                 }
         }
@@ -199,16 +210,16 @@ class EditLoadoutContentsMenu(
 
     override fun onClose(player: Player, manualClose: Boolean)
     {
-        if (manualClose)
+        if (manualClose && !editingName)
         {
-            //save active loadout
             handleLoadoutSave(player).thenRun {
-                player.sendMessage("${CC.GREEN}Saving loadout...")
-                handleBackwardsMenuNavigation(player)
+                Tasks.sync {
+                    player.sendMessage("${CC.GREEN}Saving loadout...")
+                    handleBackwardsMenuNavigation(player)
+                }
             }
         }
 
-        //revert user to previous state
         if (!movingToExtendedContentMenu)
         {
             Tasks.sync {
@@ -219,6 +230,7 @@ class EditLoadoutContentsMenu(
 
     override fun onOpen(player: Player)
     {
+        editingName = false
         val inventory = loadout.inventoryContents
         player.inventory.contents = inventory
         player.updateInventory()
