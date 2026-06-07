@@ -12,8 +12,8 @@ import mc.arch.commons.communications.rpc.RPCContext
 import mc.arch.commons.communications.rpc.RPCHandler
 import net.evilblock.cubed.nametag.NametagHandler
 import net.evilblock.cubed.util.CC
-import okio.withLock
 import org.bukkit.Bukkit
+import java.util.concurrent.TimeUnit
 
 /**
  * @author Subham
@@ -93,14 +93,34 @@ class MiniGameJoinIntoGameHandler : RPCHandler<JoinIntoGameRequest, JoinIntoGame
                 }
 
                 val teamAssignSpan = span?.startChild("team_assignment", "assign_players")
-                gameImpl.teamMutLock.withLock {
+
+                // Never block the RPC listener thread indefinitely: if the team lock is
+                // held (e.g. by a stuck/overloaded game tick), the caller's 3s RPC timeout
+                // would fire and the queue would flag this whole instance as failing.
+                // Reply BUSY instead so the queue can re-queue and retry cleanly.
+                if (!gameImpl.teamMutLock.tryLock(2, TimeUnit.SECONDS))
+                {
+                    teamAssignSpan?.setData("failure_reason", "team_lock_timeout")
+                    teamAssignSpan?.status = SpanStatus.DEADLINE_EXCEEDED
+                    teamAssignSpan?.finish()
+
+                    span?.setData("failure_reason", "team_lock_timeout")
+                    span?.status = SpanStatus.DEADLINE_EXCEEDED
+                    span?.finish()
+
+                    context.reply(JoinIntoGameResult(status = JoinIntoGameStatus.FAILED_GAME_BUSY))
+                    return
+                }
+
+                try {
+                  run lockBody@{
                     val maxPlayersPerTeam = gameImpl.miniGameLifecycle!!.configuration.maximumPlayersPerTeam
                     val partySize = request.players.size
 
                     if (partySize + gameImpl.teams.sumOf { it.players.size } > gameImpl.miniGameLifecycle!!.configuration.maximumPlayers)
                     {
                         status = JoinIntoGameStatus.FAILED_NON_EMPTY_TEAMS
-                        return@withLock
+                        return@lockBody
                     }
 
                     request.players.forEach { player ->
@@ -230,6 +250,9 @@ class MiniGameJoinIntoGameHandler : RPCHandler<JoinIntoGameRequest, JoinIntoGame
                             }
                         }
                     }
+                  }
+                } finally {
+                    gameImpl.teamMutLock.unlock()
                 }
                 teamAssignSpan?.status = if (status == JoinIntoGameStatus.SUCCESS) SpanStatus.OK else SpanStatus.INTERNAL_ERROR
                 teamAssignSpan?.finish()
