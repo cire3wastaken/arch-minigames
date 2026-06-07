@@ -344,9 +344,14 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
                                 serverId
                             )
                         } else {
-                            if (joinGameResult.status != JoinIntoGameStatus.FAILED_ALREADY_STARTED &&
-                                joinGameResult.status != JoinIntoGameStatus.FAILED_PRIVATE_GAME &&
-                                joinGameResult.status != JoinIntoGameStatus.FAILED_GAME_NOT_FOUND) {
+                            // Only flag the instance as unhealthy for outcomes that actually
+                            // mean it's struggling. A full/started/stale game, or a private
+                            // game, is a normal matchmaking outcome on a perfectly healthy box
+                            // and must not exclude it from selection.
+                            val instanceUnhealthy =
+                                joinGameResult.status == JoinIntoGameStatus.FAILED_GAME_BUSY ||
+                                    joinGameResult.status == JoinIntoGameStatus.FAILED_RPC_FAILURE
+                            if (instanceUnhealthy) {
                                 recordInstanceFailure(serverId)
                             }
                             io.sentry.Sentry.addBreadcrumb(io.sentry.Breadcrumb().apply {
