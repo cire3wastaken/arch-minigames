@@ -80,7 +80,7 @@ class EditorKitSelectionMenu(
                 inventoryContents = kit.contents.deepClone()
             )
 
-            practiceProfile.customLoadouts[kit.id]?.add(loadout)
+            practiceProfile.customLoadouts.getOrPut(kit.id) { mutableListOf() }.add(loadout)
 
             Button.playNeutral(player)
             EditLoadoutContentsMenu(
