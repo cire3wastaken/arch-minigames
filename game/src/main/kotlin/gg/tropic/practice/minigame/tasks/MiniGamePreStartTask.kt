@@ -7,6 +7,8 @@ import gg.tropic.practice.minigame.AbstractMiniGameGameImpl
 import gg.tropic.practice.minigame.event.MiniGameEnterStartEvent
 import gg.tropic.practice.minigame.event.MiniGameStartCancelEvent
 import gg.tropic.practice.minigame.event.MiniGameStartTickEvent
+import io.sentry.Sentry
+import io.sentry.SentryLevel
 import me.lucko.helper.Schedulers
 import me.lucko.helper.scheduler.Task
 import net.evilblock.cubed.util.CC
@@ -25,6 +27,8 @@ class MiniGamePreStartTask(
 {
     companion object
     {
+        private const val ABANDON_AFTER_NO_ONLINE_MS = 60_000L
+
         fun AbstractMiniGameGameImpl<*>.startPreStartTask() = with(MiniGamePreStartTask(this)) {
             task = Schedulers.sync()
                 .runRepeating(
@@ -39,6 +43,7 @@ class MiniGamePreStartTask(
     }
 
     lateinit var task: Task
+    private var noOnlineSince: Long? = null
 
     override fun run()
     {
@@ -56,6 +61,31 @@ class MiniGamePreStartTask(
             game.state = GameState.Completed
             game.closeAndCleanup()
             return
+        }
+
+        if (game.toBukkitPlayers().any { it != null })
+        {
+            noOnlineSince = null
+        } else
+        {
+            val since = noOnlineSince ?: System.currentTimeMillis().also { noOnlineSince = it }
+            if (System.currentTimeMillis() - since >= ABANDON_AFTER_NO_ONLINE_MS)
+            {
+                Sentry.captureMessage(
+                    "Abandoning zombie minigame: no online players for ${ABANDON_AFTER_NO_ONLINE_MS / 1000}s while $currentState"
+                ) { scope ->
+                    scope.level = SentryLevel.WARNING
+                    scope.setTag("alert_type", "zombie_game_abandoned")
+                    scope.setExtra("game_state", currentState.name)
+                    scope.setExtra("expected_players", currentPlayers.size.toString())
+                    scope.setExtra("game_id", game.expectation.toString())
+                }
+
+                task.closeAndReportException()
+                game.state = GameState.Completed
+                game.closeAndCleanup()
+                return
+            }
         }
 
         if (currentState == GameState.Waiting)
