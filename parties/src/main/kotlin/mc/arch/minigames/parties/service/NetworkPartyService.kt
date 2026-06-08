@@ -160,7 +160,19 @@ object NetworkPartyService : PartyService
 
             val server = retrieve<String>("server")
 
-            for (uuid in party.members.keys)
+            // This server is already the destination, so nobody here needs to move.
+            if (ServerSync.local.id.equals(server, ignoreCase = true))
+            {
+                return@listen
+            }
+
+            // The warp packet is broadcast to every server, and each one only sees
+            // its own players via Bukkit.getPlayer. Redirecting the locals on each
+            // server is what lets a party that's split across multiple lobbies all
+            // get pulled in - members no longer need to be on the same instance.
+            // includedMembers() also covers the leader, so warps to another server
+            // (e.g. private games) bring the leader along instead of leaving them.
+            for (uuid in party.includedMembers())
             {
                 val bukkitPlayer = Bukkit
                     .getPlayer(uuid)
@@ -169,11 +181,6 @@ object NetworkPartyService : PartyService
                 bukkitPlayer.sendMessage("${CC.GRAY}${CC.STRIKE_THROUGH}${" ".repeat(53)}")
                 bukkitPlayer.sendMessage("${CC.GREEN}Your party is being warped to ${CC.GOLD}${server}${CC.GREEN}!")
                 bukkitPlayer.sendMessage("${CC.GRAY}${CC.STRIKE_THROUGH}${" ".repeat(53)}")
-
-                if (ServerSync.local.id.equals(server, ignoreCase = true))
-                {
-                    continue
-                }
 
                 VelocityRedirectSystem.redirect(bukkitPlayer, server)
             }
@@ -274,8 +281,6 @@ object NetworkPartyService : PartyService
 
     override fun warpPartyHere(party: Party)
     {
-        val leader = Bukkit.getPlayer(party.leader.uniqueId)
-
         AwareMessage.of(
             packet = "warp",
             aware = sync,

@@ -143,11 +143,6 @@ object PartyCommand : ScalaCommand()
                 settings += "${CC.GREEN}All Invite"
             }
 
-            if (party.isEnabled(PartySetting.AUTO_WARP))
-            {
-                settings += "${CC.AQUA}Auto Warp"
-            }
-
             player.sendMessage("${CC.YELLOW}Settings:${
                 if (settings.isEmpty()) " ${CC.RED}None" else " ${settings.joinToString("${CC.GRAY}, ")}"
             }")

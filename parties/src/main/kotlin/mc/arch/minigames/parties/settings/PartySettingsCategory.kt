@@ -104,18 +104,6 @@ object PartySettingsCategory : SettingCategory
             description += "party members"
 
             item = ItemBuilder.of(XMaterial.PAPER)
-        },
-        buildEntry {
-            id = "party_autowarp"
-            displayName = "Party Auto-Warp"
-
-            clazz = StateSettingValue::class.java
-            default = StateSettingValue.ENABLED
-
-            description += "Allows you to automatically"
-            description += "warp party members"
-
-            item = ItemBuilder.of(XMaterial.COMPASS)
         }
     )
 
