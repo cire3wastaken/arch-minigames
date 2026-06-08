@@ -18,7 +18,7 @@ object MiniGameJoinRequestService
     {
         MiniGameRPC.spectateService.addHandler(MiniGameSpectateHandler())
         MiniGameRPC.joinIntoGameService.addHandler(MiniGameJoinIntoGameHandler())
-        //MiniGameRPC.restartInstanceService.addHandler(RestartInstanceHandler())
+        MiniGameRPC.restartInstanceService.addHandler(RestartInstanceHandler())
     }
 }
 

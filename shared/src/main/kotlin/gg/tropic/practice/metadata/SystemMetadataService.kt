@@ -39,10 +39,10 @@ object SystemMetadataService
                     server = ServerSync.local.id,
                     status = statusService()
                 )
-            }, 0L, 10L)
+            }, 0L, 30L)
             .bindWith(plugin)
 
-        plugin.logger.info("Bound status service. Status updates for available games will be pushed to the gamemanager channel ever 0.25 seconds.")
+        plugin.logger.info("Bound status service. Full instance metadata is broadcast to the gamemanager channel every 1.5 seconds.")
     }
 
     private var gameStatusWriteLock = ReentrantReadWriteLock()

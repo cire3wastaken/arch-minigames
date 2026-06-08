@@ -56,7 +56,35 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
         private val restartRequestsSent = ConcurrentHashMap<String, Long>()
 
         private val inFlightJoins = ConcurrentHashMap<String, AtomicInteger>()
-        private const val MAX_IN_FLIGHT_PER_INSTANCE = 2
+        private const val MAX_IN_FLIGHT_PER_INSTANCE = 1
+
+        // Transient join failures (a stale GameManager entry pointing at a game that has
+        // already emptied out, or a busy team lock) shouldn't spawn a fallback game right
+        // away — that's what produces a storm of doomed games. Instead, back the party off
+        // briefly and re-queue: by the next pass the stale listing has expired from
+        // GameManager's 2s cache, so they cleanly join a real game or create one.
+        private val joinRetryCounts = ConcurrentHashMap<UUID, Int>()
+        private val joinRetryBackoffUntil = ConcurrentHashMap<UUID, Long>()
+        private const val MAX_TRANSIENT_JOIN_RETRIES = 2
+        private const val TRANSIENT_JOIN_BACKOFF_MS = 5_000L
+
+        fun isJoinRetryBackingOff(leader: UUID): Boolean =
+            System.currentTimeMillis() < (joinRetryBackoffUntil[leader] ?: 0L)
+
+        fun clearJoinRetryState(leader: UUID) {
+            joinRetryCounts.remove(leader)
+            joinRetryBackoffUntil.remove(leader)
+        }
+
+        fun shouldBackOffAndRetry(leader: UUID): Boolean {
+            val attempts = joinRetryCounts.merge(leader, 1, Int::plus) ?: 1
+            if (attempts > MAX_TRANSIENT_JOIN_RETRIES) {
+                clearJoinRetryState(leader)
+                return false
+            }
+            joinRetryBackoffUntil[leader] = System.currentTimeMillis() + TRANSIENT_JOIN_BACKOFF_MS
+            return true
+        }
 
         fun incrementInFlight(serverId: String): Int =
             inFlightJoins.computeIfAbsent(serverId) { AtomicInteger(0) }.incrementAndGet()
@@ -190,6 +218,12 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
         }
 
         val targetEntry = playersInQueue().first()
+
+        if (isJoinRetryBackingOff(targetEntry.data.leader))
+        {
+            return emptyList()
+        }
+
         val preferredRegion = if (targetEntry.data.preferredQueueRegion == Region.Both)
             Region.NA else targetEntry.data.preferredQueueRegion
 
@@ -301,16 +335,23 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
                             game = existingGameRequiringPlayers
                         )
                     )
-                    .orTimeout(5, TimeUnit.SECONDS)
+                    .orTimeout(9, TimeUnit.SECONDS)
                     .thenAccept { joinGameResult ->
                         if (joinGameResult.status == JoinIntoGameStatus.SUCCESS) {
+                            clearJoinRetryState(targetEntry.data.leader)
                             RedisShared.redirect(
                                 targetEntry.data.players,
                                 serverId
                             )
                         } else {
-                            if (joinGameResult.status != JoinIntoGameStatus.FAILED_ALREADY_STARTED &&
-                                joinGameResult.status != JoinIntoGameStatus.FAILED_PRIVATE_GAME) {
+                            // Only flag the instance as unhealthy for outcomes that actually
+                            // mean it's struggling. A full/started/stale game, or a private
+                            // game, is a normal matchmaking outcome on a perfectly healthy box
+                            // and must not exclude it from selection.
+                            val instanceUnhealthy =
+                                joinGameResult.status == JoinIntoGameStatus.FAILED_GAME_BUSY ||
+                                    joinGameResult.status == JoinIntoGameStatus.FAILED_RPC_FAILURE
+                            if (instanceUnhealthy) {
                                 recordInstanceFailure(serverId)
                             }
                             io.sentry.Sentry.addBreadcrumb(io.sentry.Breadcrumb().apply {
@@ -320,9 +361,10 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
                                 setData("server", serverId)
                                 setData("status", joinGameResult.status.name)
                             })
-                            println("Failed to join into game for ${targetEntry.data.leader} (${joinGameResult.status})")
 
-                            handleJoinFailure(targetEntry, preferredRegion, map, joinGameResult.status.name)
+                            val transient = joinGameResult.status == JoinIntoGameStatus.FAILED_GAME_NOT_FOUND ||
+                                joinGameResult.status == JoinIntoGameStatus.FAILED_GAME_BUSY
+                            handleJoinFailure(targetEntry, preferredRegion, map, joinGameResult.status.name, transient)
                         }
                     }
                     .exceptionally { ex ->
@@ -335,14 +377,7 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
                             scope.setExtra("game_id", existingGameRequiringPlayers.uniqueId.toString())
                             scope.setExtra("failure_count", getInstanceFailureCount(serverId).toString())
                         }
-                        val cause = (ex as? java.util.concurrent.CompletionException)?.cause ?: ex
-                        val reason = when (cause) {
-                            is java.util.concurrent.TimeoutException -> "timed out after 5s"
-                            else -> "${cause::class.simpleName}: ${cause.message}"
-                        }
-                        println("RPC failed for join into game on $serverId ($reason)")
-
-                        handleJoinFailure(targetEntry, preferredRegion, map, "RPC_FAILURE")
+                        handleJoinFailure(targetEntry, preferredRegion, map, "RPC_FAILURE", transient = true)
                         null
                     }
                     // Release the in-flight slot once the join has settled either way.
@@ -437,8 +472,28 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
         targetEntry: InternalQueueEntry<QueueEntry>,
         preferredRegion: Region,
         map: gg.tropic.practice.application.api.defaults.map.ImmutableMap,
-        reason: String
+        reason: String,
+        transient: Boolean = false
     ) {
+        // Transient failures (stale game listing, busy lock, no RPC reply) shouldn't spawn
+        // a fallback game on the spot — that's what produces a storm of doomed games when
+        // an instance is flapping. Back the party off and re-queue them for another pass.
+        if (transient && shouldBackOffAndRetry(targetEntry.data.leader)) {
+            if (!isQueued(targetEntry.data.leader)) {
+                subscribe(targetEntry.data)
+            }
+            io.sentry.Sentry.addBreadcrumb(io.sentry.Breadcrumb().apply {
+                category = "queue.join_retry"
+                message = "Re-queued ${targetEntry.data.leader} after transient join failure ($reason)"
+                level = io.sentry.SentryLevel.INFO
+            })
+            return
+        }
+
+        // Retries exhausted (or a hard failure): clear state and fall through to the
+        // normal recovery path below.
+        clearJoinRetryState(targetEntry.data.leader)
+
         if (createsFallbackGameOnJoinFailure) {
             handleFailedJoinWithNewGame(targetEntry, preferredRegion, map)
             return
