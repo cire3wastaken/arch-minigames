@@ -56,7 +56,7 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
         private val restartRequestsSent = ConcurrentHashMap<String, Long>()
 
         private val inFlightJoins = ConcurrentHashMap<String, AtomicInteger>()
-        private const val MAX_IN_FLIGHT_PER_INSTANCE = 2
+        private const val MAX_IN_FLIGHT_PER_INSTANCE = 1
 
         // Transient join failures (a stale GameManager entry pointing at a game that has
         // already emptied out, or a busy team lock) shouldn't spawn a fallback game right
@@ -65,8 +65,8 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
         // GameManager's 2s cache, so they cleanly join a real game or create one.
         private val joinRetryCounts = ConcurrentHashMap<UUID, Int>()
         private val joinRetryBackoffUntil = ConcurrentHashMap<UUID, Long>()
-        private const val MAX_TRANSIENT_JOIN_RETRIES = 5
-        private const val TRANSIENT_JOIN_BACKOFF_MS = 2_500L
+        private const val MAX_TRANSIENT_JOIN_RETRIES = 2
+        private const val TRANSIENT_JOIN_BACKOFF_MS = 5_000L
 
         fun isJoinRetryBackingOff(leader: UUID): Boolean =
             System.currentTimeMillis() < (joinRetryBackoffUntil[leader] ?: 0L)
@@ -361,7 +361,6 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
                                 setData("server", serverId)
                                 setData("status", joinGameResult.status.name)
                             })
-                            println("Failed to join into game for ${targetEntry.data.leader} (${joinGameResult.status})")
 
                             val transient = joinGameResult.status == JoinIntoGameStatus.FAILED_GAME_NOT_FOUND ||
                                 joinGameResult.status == JoinIntoGameStatus.FAILED_GAME_BUSY
@@ -378,13 +377,6 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
                             scope.setExtra("game_id", existingGameRequiringPlayers.uniqueId.toString())
                             scope.setExtra("failure_count", getInstanceFailureCount(serverId).toString())
                         }
-                        val cause = (ex as? java.util.concurrent.CompletionException)?.cause ?: ex
-                        val reason = when (cause) {
-                            is java.util.concurrent.TimeoutException -> "no RPC reply within deadline"
-                            else -> "${cause::class.simpleName}: ${cause.message}"
-                        }
-                        println("RPC failed for join into game on $serverId ($reason)")
-
                         handleJoinFailure(targetEntry, preferredRegion, map, "RPC_FAILURE", transient = true)
                         null
                     }
