@@ -174,39 +174,6 @@ class PartyManageMenu(
                     party.saveAndUpdateParty()
                 }
 
-            this[14] = MultiOptionPlayerSettingsBuilder()
-                .titleOf("${CC.GREEN}Party Auto Warp")
-                .materialOf(XMaterial.COMPASS)
-                .descriptionOf(
-                    "${CC.GRAY}Do you want to automatically",
-                    "${CC.GRAY}warp all party members when",
-                    "${CC.GRAY}you change servers?"
-                )
-                .orderedValuesOf(
-                    "Enabled",
-                    "Disabled"
-                )
-                .fallbackOf("Disabled")
-                .providerOverrideOf { _, _ ->
-                    if (party.isEnabled(PartySetting.AUTO_WARP))
-                        "Enabled"
-                    else
-                        "Disabled"
-                }
-                .valueOverrideOf {
-                    party.update(PartySetting.AUTO_WARP, it == "Enabled")
-                    party.saveAndUpdateParty().thenRun {
-                        PartyMessageStream.pushToStream(
-                            party, FancyMessage()
-                                .withMessage("${CC.GRAY}${CC.STRIKE_THROUGH}${" ".repeat(53)}\n")
-                                .withMessage("${CC.GREEN}${player.uniqueId.toDisplayName()} ${CC.YELLOW}$it ${CC.GREEN}Auto-Warp${CC.YELLOW}!\n")
-                                .withMessage("${CC.GRAY}${CC.STRIKE_THROUGH}${" ".repeat(53)}")
-                        )
-                    }
-                }
-                .asButton()
-
-
             this[1] = ItemBuilder(XMaterial.OAK_SIGN)
                 .name("${CC.GREEN}Party Password")
                 .addToLore(
