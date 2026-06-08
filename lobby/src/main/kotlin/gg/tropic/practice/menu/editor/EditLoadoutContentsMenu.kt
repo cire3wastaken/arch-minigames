@@ -59,8 +59,7 @@ class EditLoadoutContentsMenu(
             }
 
         buttons[13] = ItemBuilder
-            .of(Material.WOOL)
-            .data(4)
+            .of(XMaterial.YELLOW_WOOL)
             .name("${CC.B_YELLOW}Reset Loadout")
             .addToLore(
                 "${CC.WHITE}Reset the loadout to it's",
@@ -90,8 +89,7 @@ class EditLoadoutContentsMenu(
             }
 
         buttons[15] = ItemBuilder
-            .of(Material.WOOL)
-            .data(14)
+            .of(XMaterial.RED_WOOL)
             .name("${CC.B_RED}Cancel Edit")
             .addToLore(
                 "${CC.WHITE}Cancel the loadout editing",

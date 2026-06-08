@@ -50,6 +50,7 @@ import me.lucko.helper.Events
 import me.lucko.helper.Schedulers
 import me.lucko.helper.terminable.composite.CompositeTerminable
 import net.evilblock.cubed.util.CC
+import net.evilblock.cubed.util.ServerVersion
 import net.evilblock.cubed.util.bukkit.Constants
 import net.evilblock.cubed.util.bukkit.FancyMessage
 import net.evilblock.cubed.util.bukkit.ItemBuilder
@@ -206,11 +207,22 @@ open class GameImpl(
 
     private var endTimestamp: Long = 0L
 
-    fun lobbyGroup() = miniGameLifecycle?.typeConfiguration?.lobbyGroup ?: "miplobby"
+    /**
+     * Modern duels are regular (non-minigame) duels hosted on a modern
+     * (1.9+) game server. They have no [miniGameLifecycle], so they fall back
+     * to the duels routing — but should return to the dedicated modern duels
+     * lobby instead of the legacy one.
+     */
+    fun isModernDuel() = miniGameLifecycle == null &&
+        ServerVersion.getVersion().isNewerThan(ServerVersion.v1_9)
+
+    fun lobbyGroup() = miniGameLifecycle?.typeConfiguration?.lobbyGroup
+        ?: if (isModernDuel()) "duelsmodernlobby" else "miplobby"
+
     fun findBestAvailableLobby(): GameServer?
     {
         return ServerContainer
-            .getServersInGroupCasted<GameServer>(miniGameLifecycle?.typeConfiguration?.lobbyGroup ?: "miplobby")
+            .getServersInGroupCasted<GameServer>(lobbyGroup())
             .filter {
                 it.getWhitelisted() == ServerSync.getLocalGameServer().getWhitelisted()
             }

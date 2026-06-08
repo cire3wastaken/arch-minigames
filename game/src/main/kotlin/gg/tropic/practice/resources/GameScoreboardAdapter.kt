@@ -272,12 +272,30 @@ object GameScoreboardAdapter : ScoreboardAdapter()
 
                     GameState.Starting ->
                     {
-                        val opponents = game
-                            .getAllOpponents(game.getTeamOf(player))
-                            .flatMap(GameTeam::players)
+                        val opponents = if (game.isFreeForAll)
+                            game.getTeamOf(player).players
+                                .filterNot { it == player.uniqueId }
+                        else
+                            game
+                                .getAllOpponents(game.getTeamOf(player))
+                                .flatMap(GameTeam::players)
                         board += "${CC.PRI}${Constants.THIN_VERTICAL_LINE} ${CC.SEC}Starting in: ${CC.WHITE}${game.currentGameStartCountdown}s"
 
-                        if (opponents.size == 1)
+                        if (game.isFreeForAll)
+                        {
+                            board += "${CC.PRI}${Constants.THIN_VERTICAL_LINE} ${CC.SEC}Players: ${CC.WHITE}${opponents.size + 1}"
+                            board += "${CC.GRAY}Opponents:"
+
+                            for (other in opponents.take(4))
+                            {
+                                board += "${CC.GRAY} - ${CC.WHITE}${game.usernameOf(other)}"
+                            }
+
+                            if (opponents.size > 4)
+                            {
+                                board += "${CC.WHITE}(and ${opponents.size - 4} more...)"
+                            }
+                        } else if (opponents.size == 1)
                         {
                             //todo: test with usernames above 16 char
                             board += "${CC.PRI}${Constants.THIN_VERTICAL_LINE} ${CC.SEC}Opponent: ${CC.WHITE}${
@@ -297,7 +315,7 @@ object GameScoreboardAdapter : ScoreboardAdapter()
                                     game.robotInstance.firstOrNull { it.solaraID() == other }?.name() ?: "Robot"
                                 } else
                                 {
-                                    game.usernameOf(opponents.first())
+                                    game.usernameOf(other)
                                 }
 
                                 board += "${CC.GRAY} - ${CC.WHITE}$specificOpponent"
@@ -313,7 +331,7 @@ object GameScoreboardAdapter : ScoreboardAdapter()
                         board += "${CC.PRI}Ping:"
                         board += "${CC.PRI}${Constants.THIN_VERTICAL_LINE} ${CC.SEC}You: ${CC.GREEN}${MinecraftReflection.getPing(player)}ms"
 
-                        if (!game.robot())
+                        if (!game.robot() && !game.isFreeForAll)
                         {
                             val opponentPlayer = opponents.firstOrNull()
                             if (opponentPlayer != null)
@@ -330,7 +348,41 @@ object GameScoreboardAdapter : ScoreboardAdapter()
 
                     GameState.Playing ->
                     {
-                        if (game.lifecycle() != GameLifecycle.MiniGame)
+                        if (game.lifecycle() != GameLifecycle.MiniGame && game.isFreeForAll)
+                        {
+                            val team = game.getTeamOf(player)
+                            val aliveOpponents = team.nonSpectators()
+                                .filterNot { it.uniqueId == player.uniqueId }
+
+                            board += "${CC.PRI}${Constants.THIN_VERTICAL_LINE} ${CC.SEC}Players left: ${CC.WHITE}${team.nonSpectators().size}"
+                            board += ""
+                            board += "${CC.PRI}Ping:"
+                            board += "${CC.PRI}${Constants.THIN_VERTICAL_LINE} ${CC.SEC}You: ${CC.GREEN}${MinecraftReflection.getPing(player)}ms"
+                            board += ""
+
+                            if (aliveOpponents.isEmpty())
+                            {
+                                board += "${CC.GRAY}No opponents left!"
+                            } else
+                            {
+                                board += "${CC.GRAY}Opponents:"
+                                for (other in aliveOpponents.take(4))
+                                {
+                                    board += "${CC.GRAY} - ${CC.WHITE}${other.name}${CC.R} ${CC.D_GRAY}(${
+                                        MinecraftReflection.getPing(other)
+                                    }ms)"
+                                }
+
+                                if (aliveOpponents.size > 4)
+                                {
+                                    board += "${CC.WHITE}(and ${aliveOpponents.size - 4} more...)"
+                                }
+                            }
+
+                            board += ""
+                            board += "${CC.PRI}${Constants.THIN_VERTICAL_LINE} ${CC.SEC}Map: ${CC.WHITE}${game.map.displayName}"
+                            board += "${CC.PRI}${Constants.THIN_VERTICAL_LINE} ${CC.SEC}Duration: ${CC.WHITE}${game.getDuration()}"
+                        } else if (game.lifecycle() != GameLifecycle.MiniGame)
                         {
                             val opponent = game.getOpponent(player)
                             val showHitScoreboard = game.flag(FeatureFlag.WinWhenNHitsReached)
@@ -566,7 +618,7 @@ object GameScoreboardAdapter : ScoreboardAdapter()
             }"
 
         return game.miniGameLifecycle?.scoreboard?.titleFor(player)
-            ?: "${CC.B_PRI}Duels${
+            ?: "${CC.B_PRI}${if (game.isModernDuel()) "Modern Duels" else "Duels"}${
                 if ("mipdev" in ServerSync.getLocalGameServer().groups) " ${CC.D_GRAY}(dev)" else ""
             }"
     }

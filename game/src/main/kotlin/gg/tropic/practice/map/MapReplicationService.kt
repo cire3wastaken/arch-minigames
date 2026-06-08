@@ -552,6 +552,9 @@ object MapReplicationService
                     .run {
                         it.setGameRuleValue("doDaylightCycle", "false")
                         it.setGameRuleValue("announceAdvancements", "false")
+                        // skip the vanilla death screen so players are respawned
+                        // straight into the game's spectator/respawn flow
+                        it.setGameRuleValue("doImmediateRespawn", "true")
                     }
                     .join()
             } else

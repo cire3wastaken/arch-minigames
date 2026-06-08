@@ -2537,7 +2537,7 @@ object GameService
                 }
 
                 event.playerStatus.activityDescription = "in a duel"
-                event.playerStatus.returnToServerGroup = "miplobby"
+                event.playerStatus.returnToServerGroup = game.lobbyGroup()
             }
             .bindWith(plugin)
     }
