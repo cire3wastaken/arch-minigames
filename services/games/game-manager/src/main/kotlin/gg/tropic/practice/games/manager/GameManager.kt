@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
 object GameManager
 {
     private val gameListingCache = Caffeine.newBuilder()
-        .expireAfterWrite(4L, TimeUnit.SECONDS)
+        .expireAfterWrite(2L, TimeUnit.SECONDS)
         .removalListener<String, InstanceMetadata> { _, _, _ -> syncStatusIndexes() }
         .build<String, InstanceMetadata>()
 
