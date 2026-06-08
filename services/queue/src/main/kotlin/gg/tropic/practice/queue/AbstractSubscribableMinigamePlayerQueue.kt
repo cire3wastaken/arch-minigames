@@ -48,7 +48,7 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
         // so we stop funneling players into an unresponsive instance immediately...
         private const val FAILURE_THRESHOLD_EXCLUDE = 1
         // ...but only request an actual restart once it crosses the higher threshold.
-        private const val FAILURE_THRESHOLD_RESTART = 3
+        private const val FAILURE_THRESHOLD_RESTART = 6
         private const val FAILURE_RESET_INTERVAL_MS = 60_000L // Reset failures after 1 minute
         private val lastFailureReset = ConcurrentHashMap<String, Long>()
 
@@ -347,10 +347,13 @@ abstract class AbstractSubscribableMinigamePlayerQueue(
                             // Only flag the instance as unhealthy for outcomes that actually
                             // mean it's struggling. A full/started/stale game, or a private
                             // game, is a normal matchmaking outcome on a perfectly healthy box
-                            // and must not exclude it from selection.
+                            // and must not exclude it from selection. FAILED_GAME_BUSY is a
+                            // deliberate fast reply for a contended team lock (see the join
+                            // RPC) — it means the box is responsive and popular, not wedged —
+                            // so it's treated as transient (backoff + re-queue) and must not
+                            // trip the breaker either, or popular instances reboot themselves.
                             val instanceUnhealthy =
-                                joinGameResult.status == JoinIntoGameStatus.FAILED_GAME_BUSY ||
-                                    joinGameResult.status == JoinIntoGameStatus.FAILED_RPC_FAILURE
+                                joinGameResult.status == JoinIntoGameStatus.FAILED_RPC_FAILURE
                             if (instanceUnhealthy) {
                                 recordInstanceFailure(serverId)
                             }
