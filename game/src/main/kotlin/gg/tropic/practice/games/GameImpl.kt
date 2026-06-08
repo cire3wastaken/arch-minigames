@@ -770,6 +770,7 @@ open class GameImpl(
     }
 
     fun allNonSpectators() = expectationModel.players
+        .toList()
         .mapNotNull { Bukkit.getPlayer(it) }
         .filterNot { GameService.isSpectating(it) }
 
