@@ -24,6 +24,8 @@ class DuelsModernLobby : ExtendedScalaPlugin()
     @ContainerEnable
     fun containerEnable()
     {
+        ItemStackAdapter.writeModernToLegacy = true
+
         // fuck these skulls
         MojangProfileLookupLogFilter.install()
     }
