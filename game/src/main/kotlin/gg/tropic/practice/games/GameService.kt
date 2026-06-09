@@ -96,8 +96,8 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.math.ceil
-import kotlin.math.floor
 import kotlin.math.min
+import kotlin.math.round
 
 /**
  * @author GrowlyX
@@ -697,8 +697,18 @@ object GameService
                                 .color(NamedTextColor.YELLOW)
                         )
 
-                        val hearts = damaged.health / 2.0
-                        val fullHearts = floor(hearts).toInt()
+                        val roundedHealth = round(damaged.health).toInt()
+                        val maxHealth = damaged.maxHealth
+
+                        val fullHearts = roundedHealth / 2
+                        val hasHalfHeart = (roundedHealth % 2) == 1
+
+                        val totalHearts = ceil(maxHealth / 2.0).toInt()
+                        val emptyHearts = totalHearts - fullHearts - (if (hasHalfHeart) 1 else 0)
+
+//                        val roundedAbsorption = ceil(damaged.absorptionAmount).toInt()
+//                        val fullAbsorptionHearts = roundedAbsorption / 2
+//                        val hasHalfAbsorptionHeart = (roundedAbsorption % 2) == 1
 
                         repeat(fullHearts) {
                             text.append(
@@ -707,27 +717,27 @@ object GameService
                             )
                         }
 
-                        if (hearts.toInt().toDouble() != hearts)
-                        {
+                        if (hasHalfHeart) {
                             text.append(
                                 Component.text(HEART_SYMBOL)
                                     .color(NamedTextColor.RED)
                             )
-                        } else
-                        {
+                        }
+
+                        repeat(maxOf(0, emptyHearts)) {
                             text.append(
                                 Component.text(HEART_SYMBOL)
                                     .color(NamedTextColor.GRAY)
                             )
                         }
 
-                        val usedHearts = floor((damaged.maxHealth - damaged.health) / 2.0)
-                        repeat(usedHearts.toInt()) {
-                            text.append(
-                                Component.text(HEART_SYMBOL)
-                                    .color(NamedTextColor.GRAY)
-                            )
-                        }
+//                        repeat(fullAbsorptionHearts) {
+//                            text.append(Component.text(HEART_SYMBOL).color(NamedTextColor.GOLD))
+//                        }
+//
+//                        if (hasHalfAbsorptionHeart) {
+//                            text.append(Component.text(HEART_SYMBOL).color(NamedTextColor.YELLOW))
+//                        }
                     }
                 }
             }
